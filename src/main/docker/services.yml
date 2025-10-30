@@ -1,0 +1,22 @@
+# This configuration is intended for development purpose, it's **your** responsibility to harden it for production
+name: elkpoc
+services:
+  mysql:
+    extends:
+      file: ./mysql.yml
+      service: mysql
+    profiles:
+      - ''
+      - prod
+  elasticsearch:
+    extends:
+      file: ./elasticsearch.yml
+      service: elasticsearch
+  logstash:
+    extends:
+      file: ./logstash.yml
+      service: logstash
+  kibana:
+    extends:
+      file: ./kibana.yml
+      service: kibana
