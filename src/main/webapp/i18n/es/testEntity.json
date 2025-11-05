@@ -1,0 +1,24 @@
+{
+  "elkPocApp": {
+    "testEntity": {
+      "home": {
+        "title": "Test Entities",
+        "refreshListLabel": "Refrescar lista",
+        "createLabel": "Crear nuevo Test Entity",
+        "createOrEditLabel": "Crear o editar Test Entity",
+        "notFound": "Ningún Test Entities encontrado"
+      },
+      "created": "Un nuevo Test Entity ha sido creado con el identificador {{ param }}",
+      "updated": "Un Test Entity ha sido actualizado con el identificador {{ param }}",
+      "deleted": "Un Test Entity ha sido eliminado con el identificador {{ param }}",
+      "delete": {
+        "question": "¿Seguro que quiere eliminar Test Entity {{ id }}?"
+      },
+      "detail": {
+        "title": "Test Entity"
+      },
+      "id": "ID",
+      "name": "Name"
+    }
+  }
+}

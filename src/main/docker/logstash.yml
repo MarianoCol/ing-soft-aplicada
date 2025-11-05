@@ -1,0 +1,17 @@
+# This configuration is intended for development purpose, it's **your** responsibility to harden it for production
+name: elkpoc
+services:
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.11.1
+    volumes:
+      - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro,Z
+      - ./logstash/pipeline:/usr/share/logstash/pipeline:ro,Z
+    ports:
+      - 127.0.0.1:5000:5000/udp
+      - 127.0.0.1:5000:5000/tcp
+      - 127.0.0.1:9600:9600
+    environment:
+      - 'LS_JAVA_OPTS=-Xms256m -Xmx256m'
+    depends_on:
+      elasticsearch:
+        condition: service_healthy

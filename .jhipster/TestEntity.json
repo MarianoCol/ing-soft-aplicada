@@ -1,0 +1,15 @@
+{
+  "annotations": {
+    "changelogDate": "20251030000452"
+  },
+  "applications": "*",
+  "fields": [
+    {
+      "fieldName": "name",
+      "fieldType": "String"
+    }
+  ],
+  "name": "TestEntity",
+  "relationships": [],
+  "searchEngine": "no"
+}
