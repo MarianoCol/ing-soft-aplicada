@@ -20,3 +20,5 @@ services:
     extends:
       file: ./kibana.yml
       service: kibana
+volumes:
+  mysql_data:

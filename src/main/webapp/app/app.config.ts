@@ -48,7 +48,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes, ...routerFeatures),
     importProvidersFrom(BrowserModule),
     // Set this to true to enable service worker (PWA)
-    importProvidersFrom(ServiceWorkerModule.register('ngsw-worker.js', { enabled: false })),
+    importProvidersFrom(ServiceWorkerModule.register('ngsw-worker.js', { enabled: true })),
     importProvidersFrom(TranslationModule),
     provideHttpClient(withInterceptorsFromDi()),
     Title,

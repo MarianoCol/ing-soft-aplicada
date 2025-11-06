@@ -30,6 +30,7 @@ local.properties
 .settings/
 .loadpath
 .factorypath
+src/main/docker/mysql/mysql.sock
 
 # External tool builders
 .externalToolBuilders/**
