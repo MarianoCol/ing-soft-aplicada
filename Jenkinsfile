@@ -1,10 +1,5 @@
 pipeline {
     agent any
-    tools {
-        maven 'Maven 3'
-        jdk 'JDK 17'
-        nodejs 'NodeJS 18'
-    }
     environment {
         CI = 'true'
     }
