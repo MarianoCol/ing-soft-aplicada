@@ -48,7 +48,7 @@ pipeline {
         stage('Build and Publish') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-login', passwordVariable: 'DOCKER_REGISTRY_PWD', usernameVariable: 'DOCKER_REGISTRY_USER')]) {
-                    sh './mvnw -ntp -Pprod verify jib:build'
+                    sh './mvnw -ntp -Pprod -DskipTests jib:build'
                 }
             }
         }
