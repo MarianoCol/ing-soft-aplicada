@@ -52,6 +52,7 @@ public class TestEntityResource {
             throw new BadRequestAlertException("A new testEntity cannot already have an ID", ENTITY_NAME, "idexists");
         }
         testEntity = testEntityRepository.save(testEntity);
+        LOG.info("IDENTIDAD CREADA CORRECTAMENTE");
         return ResponseEntity.created(new URI("/api/test-entities/" + testEntity.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, testEntity.getId().toString()))
             .body(testEntity);
@@ -169,6 +170,7 @@ public class TestEntityResource {
     public ResponseEntity<Void> deleteTestEntity(@PathVariable("id") Long id) {
         LOG.debug("REST request to delete TestEntity : {}", id);
         testEntityRepository.deleteById(id);
+        LOG.info("IDENTIDAD ELIMINADA CORRECTAMENTE");
         return ResponseEntity.noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
             .build();
