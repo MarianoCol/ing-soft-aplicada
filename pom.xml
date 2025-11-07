@@ -647,7 +647,7 @@
                             </platforms>
                         </from>
                         <to>
-                            <image>testing:latest</image>
+                            <image>marianocolman24/testing:latest</image>
                             <tags>
                                 <tag>${project.version}</tag>
                                 <tag>latest</tag>
