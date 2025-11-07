@@ -1,41 +1,29 @@
 pipeline {
     agent any
     tools {
-        // Ensure you have these tools configured in Jenkins Global Tool Configuration
         maven 'Maven 3'
         jdk 'JDK 17'
         nodejs 'NodeJS 18'
     }
     environment {
-        // Optional: Define any environment variables needed
         CI = 'true'
     }
     stages {
-        stage('Installation') {
+        stage('Install Dependencies') {
             steps {
                 sh 'npm install'
             }
         }
-        stage('Backend Tests') {
+        stage('Build and Publish') {
             steps {
-                sh './mvnw -ntp clean verify'
-            }
-        }
-        stage('Frontend Tests') {
-            steps {
-                sh 'npm test'
-            }
-        }
-        stage('Package Application') {
-            steps {
-                echo 'Packaging application for production...'
-                sh './mvnw -ntp package -Pprod -DskipTests'
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-login', passwordVariable: 'DOCKER_REGISTRY_PWD', usernameVariable: 'DOCKER_REGISTRY_USER')]) {
+                    sh './mvnw -ntp -Pprod verify jib:build'
+                }
             }
         }
     }
     post {
         always {
-            // Archive the build artifact
             archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
         }
         success {

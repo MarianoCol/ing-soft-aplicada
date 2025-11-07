@@ -31,6 +31,8 @@ local.properties
 .loadpath
 .factorypath
 src/main/docker/mysql/mysql.sock
+src/main/docker/jenkins/home/caches/
+src/main/docker/
 
 # External tool builders
 .externalToolBuilders/**
