@@ -5,31 +5,45 @@ pipeline {
     }
     stages {
         stage('checkout') {
-            checkout scm
+            steps {
+                checkout scm
+            }
         }
 
         stage('check java') {
-            sh "java -version"
+            steps {
+                sh "java -version"
+            }
         }
 
         stage('clean') {
-            sh "chmod +x mvnw"
-            sh "./mvnw -ntp clean -P-webapp"
+            steps {
+                sh "chmod +x mvnw"
+                sh "./mvnw -ntp clean -P-webapp"
+            }
         }
         stage('nohttp') {
-            sh "./mvnw -ntp checkstyle:check"
+            steps {
+                sh "./mvnw -ntp checkstyle:check"
+            }
         }
 
         stage('install tools') {
-            sh "./mvnw -ntp com.github.eirslett:frontend-maven-plugin:install-node-and-npm@install-node-and-npm"
+            steps {
+                sh "./mvnw -ntp com.github.eirslett:frontend-maven-plugin:install-node-and-npm@install-node-and-npm"
+            }
         }
 
         stage('npm install') {
-            sh "./mvnw -ntp com.github.eirslett:frontend-maven-plugin:npm"
+            steps {
+                sh "./mvnw -ntp com.github.eirslett:frontend-maven-plugin:npm"
+            }
         }
         stage('packaging') {
-            sh "./mvnw -ntp verify -P-webapp -Pprod -DskipTests"
-            archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
+            steps {
+                sh "./mvnw -ntp verify -P-webapp -Pprod -DskipTests"
+                archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
+            }
         }
         stage('Build and Publish') {
             steps {
