@@ -3,10 +3,12 @@
 ######################
 /node/
 node_tmp/
-node_modules/
+**/node_modules/
 npm-debug.log.*
 /.awcache/*
 /.cache-loader/*
+**/dist/
+**/www/
 
 ######################
 # SASS
@@ -20,7 +22,6 @@ npm-debug.log.*
 .project
 .metadata
 tmp/
-tmp/**/*
 *.tmp
 *.bak
 *.swp
@@ -72,7 +73,7 @@ out/
 # Maven
 ######################
 /log/
-/target/
+**/target/
 
 ######################
 # Gradle
@@ -151,3 +152,10 @@ Desktop.ini
 ######################
 coverage/
 .nyc_output/
+
+######################
+# Local secrets and E2E artifacts
+######################
+.env
+**/cypress/screenshots/
+**/cypress/videos/

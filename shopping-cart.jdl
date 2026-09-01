@@ -1,0 +1,71 @@
+application {
+  config {
+    baseName shoppingCart
+    applicationType monolith
+    packageName com.example.shoppingcart
+    authenticationType jwt
+    buildTool maven
+    databaseType sql
+    devDatabaseType postgresql
+    prodDatabaseType postgresql
+    databaseMigration liquibase
+    cacheProvider no
+    enableHibernateCache false
+    serverPort 8080
+    clientFramework no
+    skipClient true
+    skipUserManagement false
+  }
+  entities Product, Customer, ShoppingCart, CartItem
+}
+
+entity Product {
+  name String required
+  description String
+  price BigDecimal required min(0)
+  stock Integer required min(0)
+}
+
+entity Customer {
+  firstName String required
+  lastName String required
+  email String required unique
+  phone String
+}
+
+entity ShoppingCart {
+  placedDate Instant required
+  status OrderStatus required
+  totalPrice BigDecimal required min(0)
+}
+
+entity CartItem {
+  quantity Integer required min(1)
+  totalPrice BigDecimal required min(0)
+}
+
+enum OrderStatus {
+  PENDING,
+  COMPLETED,
+  CANCELLED
+}
+
+relationship OneToOne {
+  Customer{user(login)} to User with builtInEntity
+}
+
+relationship ManyToOne {
+  ShoppingCart{customer(email) required} to Customer
+}
+
+relationship OneToMany {
+  ShoppingCart{cartItem} to CartItem{cart required}
+}
+
+relationship ManyToOne {
+  CartItem{product(name) required} to Product
+}
+
+paginate Product, Customer, ShoppingCart, CartItem with pagination
+service all with serviceImpl
+dto all with mapstruct
