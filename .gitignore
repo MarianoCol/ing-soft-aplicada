@@ -157,5 +157,6 @@ coverage/
 # Local secrets and E2E artifacts
 ######################
 .env
+.env.example
 **/cypress/screenshots/
 **/cypress/videos/
