@@ -1,0 +1,37 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Productos</ion-title>
+    <ion-button slot="end" fill="clear" color="light" routerLink="/cart" data-cy="open-cart">
+      Carrito <ion-badge data-cy="cart-count">{{ cart.count() }}</ion-badge>
+    </ion-button>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="status">
+    <ion-badge [color]="online() ? 'success' : 'warning'">{{ online() ? 'En línea' : 'Sin conexión' }}</ion-badge>
+    @if (cart.message()) { <span>{{ cart.message() }}</span> }
+  </div>
+  @if (error()) { <p>{{ error() }}</p> }
+  <section class="grid">
+    @for (product of products(); track product.id) {
+      <ion-card [attr.data-cy]="'product-' + product.id">
+        <ion-card-header>
+          <ion-card-title>{{ product.name }}</ion-card-title>
+          <ion-card-subtitle>{{ product.price.toFixed(2) }} USD · stock {{ product.stock }}</ion-card-subtitle>
+        </ion-card-header>
+        <ion-card-content>
+          <p>{{ product.description }}</p>
+          <ion-button
+            expand="block"
+            [disabled]="product.stock < 1"
+            [attr.data-cy]="'add-product-' + product.id"
+            (click)="add(product)"
+          >
+            {{ auth.isAuthenticated() ? 'Agregar' : 'Ingresar para comprar' }}
+          </ion-button>
+        </ion-card-content>
+      </ion-card>
+    }
+  </section>
+</ion-content>
