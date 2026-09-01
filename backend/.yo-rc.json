@@ -1,0 +1,26 @@
+{
+  "generator-jhipster": {
+    "applicationType": "monolith",
+    "authenticationType": "jwt",
+    "baseName": "shoppingCart",
+    "buildTool": "maven",
+    "cacheProvider": "no",
+    "clientFramework": "no",
+    "creationTimestamp": 1702998242553,
+    "databaseMigration": "liquibase",
+    "databaseType": "sql",
+    "devDatabaseType": "postgresql",
+    "enableHibernateCache": false,
+    "entities": ["Product", "Customer", "ShoppingCart", "CartItem"],
+    "jhipsterVersion": "9.2.0",
+    "jwtSecretKey": "OTI1Zjg0YTg2Y2U4M2I4NTFkYzA0MmEwYWI2MGZkNmNkY2Y3NjhhMDM0MThmMDZiNmJhYzU3MzA5NjJkZjkwNTU2OWM4MDYxODQ3ZjdmOTdjYmRmMGQ3MjIyODFhYWMyOWQwMTJhNThkMGZlOWNhNDNiYWMzNmRiMWMxYmU5NDg=",
+    "languages": ["en"],
+    "lastLiquibaseTimestamp": 1702998482000,
+    "nativeLanguage": "en",
+    "packageName": "com.example.shoppingcart",
+    "prodDatabaseType": "postgresql",
+    "serverPort": "8080",
+    "skipClient": true,
+    "skipUserManagement": false
+  }
+}
