@@ -10,6 +10,7 @@ pipeline {
         COMPOSE_PROJECT_NAME = "shopping-cart-ci-${BUILD_NUMBER}"
         DOCKERHUB_USERNAME = "ci"
         IMAGE_TAG = "${BUILD_NUMBER}"
+        TESTCONTAINERS_HOST_OVERRIDE = "host.docker.internal"
     }
 
     stages {

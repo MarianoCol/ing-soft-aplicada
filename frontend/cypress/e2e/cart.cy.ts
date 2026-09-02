@@ -1,6 +1,24 @@
+interface CartResponse {
+  items: Array<{
+    productId: number;
+    productName: string;
+    quantity: number;
+  }>;
+}
+
 describe('carrito de compras', () => {
   beforeEach(() => {
     cy.loginByApi(Cypress.env('username') ?? 'user', Cypress.env('password') ?? 'user');
+    cy.get<string>('@authToken').then((token) => {
+      cy.request<CartResponse>({
+        method: 'PUT',
+        url: `${Cypress.env('apiUrl')}/api/cart/items/1`,
+        headers: { Authorization: `Bearer ${token}` },
+        body: { quantity: 1 },
+      })
+        .its('body')
+        .as('initialCart');
+    });
   });
 
   it('inicia sesión por API y agrega el producto determinista desde la interfaz', () => {
@@ -12,8 +30,9 @@ describe('carrito de compras', () => {
     cy.wait('@getProducts').its('response.statusCode').should('eq', 200);
     cy.wait('@getCart').its('response.statusCode').should('eq', 200);
 
-    cy.get('[data-cy="cart-count"]').invoke('text').then((text) => {
-      const previousCount = Number(text.trim());
+    cy.get<CartResponse>('@initialCart').then((initialCart) => {
+      const previousCount = initialCart.items.reduce((sum, item) => sum + item.quantity, 0);
+      cy.get('[data-cy="cart-count"]').should('have.text', String(previousCount));
       cy.get('[data-cy="product-1"]').should('contain.text', 'Producto E2E');
       cy.get('[data-cy="add-product-1"]').click();
       cy.wait('@setQuantity').its('response.statusCode').should('eq', 200);
@@ -26,10 +45,10 @@ describe('carrito de compras', () => {
         headers: { Authorization: `Bearer ${token}` },
       }).then(({ status, body }) => {
         expect(status).to.eq(200);
-        expect(body.items).to.deep.include({
-          ...body.items.find((item: { productId: number }) => item.productId === 1),
+        expect(body.items.find((item: { productId: number }) => item.productId === 1)).to.include({
           productId: 1,
           productName: 'Producto E2E',
+          quantity: 2,
         });
       });
     });

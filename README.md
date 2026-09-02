@@ -192,6 +192,27 @@ docker compose restart backend frontend
 curl http://localhost:9200/_cluster/health
 ```
 
+El perfil de observabilidad aplica límites de memoria pensados para un laboratorio WSL: Elasticsearch 1280 MiB, Logstash 768 MiB y Kibana 1280 MiB. No ejecutes Jenkins o builds Maven/Node pesados al mismo tiempo que ELK en una máquina con menos de 8 GiB disponibles. Para liberar memoria sin borrar datos:
+
+```bash
+docker compose --profile observability stop kibana logstash elasticsearch
+```
+
+Si Windows tiene al menos 16 GiB de RAM, podés crear `%UserProfile%\\.wslconfig` con 8 GiB de memoria y 4 GiB de swap:
+
+```ini
+[wsl2]
+memory=8GB
+processors=4
+swap=4GB
+```
+
+Luego aplicá el cambio desde PowerShell, fuera de WSL:
+
+```powershell
+wsl --shutdown
+```
+
 Abre `http://localhost:5601`, crea un Data View `shopping-cart-*` y selecciona `@timestamp`. Backend y Nginx envían stdout/stderr a Logstash mediante GELF UDP 12201.
 
 La seguridad de Elastic está desactivada solo para este laboratorio. Antes de producción se deben habilitar TLS y autenticación, cambiar todas las claves de `.env`, eliminar el contexto Liquibase `faker` y servir la PWA detrás de HTTPS.
