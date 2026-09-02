@@ -3,6 +3,7 @@ name: shopping-cart
 services:
   postgresql:
     image: postgres:17-alpine
+    mem_limit: ${POSTGRES_MEMORY_LIMIT:-384m}
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-shoppingCart}
       POSTGRES_USER: ${POSTGRES_USER:-shoppingCart}
@@ -22,6 +23,7 @@ services:
     build:
       context: ./backend
     image: ${DOCKERHUB_USERNAME:-local}/shopping-cart-backend:${IMAGE_TAG:-latest}
+    mem_limit: ${BACKEND_MEMORY_LIMIT:-768m}
     environment:
       SPRING_PROFILES_ACTIVE: prod
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql:5432/${POSTGRES_DB:-shoppingCart}
@@ -51,6 +53,7 @@ services:
     build:
       context: ./frontend
     image: ${DOCKERHUB_USERNAME:-local}/shopping-cart-frontend:${IMAGE_TAG:-latest}
+    mem_limit: ${FRONTEND_MEMORY_LIMIT:-128m}
     ports:
       - "8088:8080"
     depends_on:
@@ -66,10 +69,11 @@ services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION:-9.5.2}
     profiles: [observability]
+    mem_limit: ${ELASTIC_MEMORY_LIMIT:-1280m}
     environment:
       discovery.type: single-node
       xpack.security.enabled: "false"
-      ES_JAVA_OPTS: ${ELASTIC_JAVA_OPTS:--Xms512m -Xmx512m}
+      ES_JAVA_OPTS: ${ELASTIC_JAVA_OPTS:--Xms384m -Xmx384m}
     ports:
       - "9200:9200"
     volumes:
@@ -85,8 +89,12 @@ services:
   logstash:
     image: docker.elastic.co/logstash/logstash:${ELASTIC_VERSION:-9.5.2}
     profiles: [observability]
+    mem_limit: ${LOGSTASH_MEMORY_LIMIT:-768m}
     environment:
       xpack.monitoring.enabled: "false"
+      LS_JAVA_OPTS: ${LOGSTASH_JAVA_OPTS:--Xms256m -Xmx256m}
+      pipeline.workers: "1"
+      pipeline.batch.size: "50"
     ports:
       - "12201:12201/udp"
       - "9600:9600"
@@ -106,8 +114,10 @@ services:
   kibana:
     image: docker.elastic.co/kibana/kibana:${ELASTIC_VERSION:-9.5.2}
     profiles: [observability]
+    mem_limit: ${KIBANA_MEMORY_LIMIT:-1280m}
     environment:
       ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+      NODE_OPTIONS: ${KIBANA_NODE_OPTIONS:---max-old-space-size=768}
     ports:
       - "5601:5601"
     depends_on:
