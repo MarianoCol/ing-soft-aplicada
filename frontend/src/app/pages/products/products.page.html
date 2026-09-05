@@ -1,6 +1,8 @@
 <ion-header>
   <ion-toolbar color="primary">
     <ion-title>Productos</ion-title>
+    @if (auth.isAdmin()) { <ion-button slot="end" fill="clear" color="light" routerLink="/admin" data-cy="open-admin">Administrar</ion-button> }
+    @if (auth.isAuthenticated()) { <ion-button slot="end" fill="clear" color="light" (click)="logout()">Salir</ion-button> }
     <ion-button slot="end" fill="clear" color="light" routerLink="/cart" data-cy="open-cart">
       Carrito <ion-badge data-cy="cart-count">{{ cart.count() }}</ion-badge>
     </ion-button>

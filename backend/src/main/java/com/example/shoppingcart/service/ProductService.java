@@ -41,6 +41,8 @@ public interface ProductService {
      */
     Page<ProductDTO> findAll(Pageable pageable);
 
+    Page<ProductDTO> findAllActive(Pageable pageable);
+
     /**
      * Get the "id" product.
      *
@@ -48,6 +50,8 @@ public interface ProductService {
      * @return the entity.
      */
     Optional<ProductDTO> findOne(Long id);
+
+    Optional<ProductDTO> findOneActive(Long id);
 
     /**
      * Delete the "id" product.

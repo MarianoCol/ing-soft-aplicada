@@ -53,6 +53,9 @@ public class CurrentCartService {
 
     public CartViewDTO setQuantity(Long productId, int quantity) {
         Product product = productRepository.findById(productId).orElseThrow(() -> new ProductNotFoundException(productId));
+        if (!Boolean.TRUE.equals(product.getActive())) {
+            throw new ProductUnavailableException(productId);
+        }
         if (quantity > product.getStock()) {
             throw new StockConflictException(productId, quantity, product.getStock());
         }

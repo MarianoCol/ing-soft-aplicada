@@ -5,7 +5,7 @@
 
     <groupId>com.example.shoppingcart</groupId>
     <artifactId>shopping-cart</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
     <packaging>jar</packaging>
     <name>Shopping Cart</name>
     <description>Description for Shopping Cart</description>

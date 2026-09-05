@@ -144,7 +144,7 @@ public class ProductResource {
     @GetMapping("")
     public ResponseEntity<List<ProductDTO>> getAllProducts(@org.springdoc.core.annotations.ParameterObject Pageable pageable) {
         LOG.debug("REST request to get a page of Products");
-        Page<ProductDTO> page = productService.findAll(pageable);
+        Page<ProductDTO> page = productService.findAllActive(pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
@@ -158,7 +158,7 @@ public class ProductResource {
     @GetMapping("/{id}")
     public ResponseEntity<ProductDTO> getProduct(@PathVariable("id") Long id) {
         LOG.debug("REST request to get Product : {}", id);
-        Optional<ProductDTO> productDTO = productService.findOne(id);
+        Optional<ProductDTO> productDTO = productService.findOneActive(id);
         return ResponseUtil.wrapOrNotFound(productDTO);
     }
 

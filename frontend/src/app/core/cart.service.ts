@@ -74,6 +74,13 @@ export class CartService {
     if (navigator.onLine) await this.synchronizeItem(pending);
   }
 
+  reset(): void {
+    this.cart.set(null);
+    this.pending.set([]);
+    this.message.set(null);
+    this.initialized = false;
+  }
+
   async synchronize(): Promise<void> {
     if (!this.auth.isAuthenticated() || !navigator.onLine) return;
     for (const item of this.pending()) {
@@ -115,7 +122,7 @@ export class CartService {
 
   private errorMessage(error: HttpErrorResponse): string {
     if (error.status === 401) return 'Volvé a iniciar sesión para sincronizar';
-    if (error.status === 409) return 'La cantidad supera el stock disponible';
+    if (error.status === 409) return 'El producto no está disponible o la cantidad supera el stock';
     return 'Pendiente de sincronización';
   }
 }

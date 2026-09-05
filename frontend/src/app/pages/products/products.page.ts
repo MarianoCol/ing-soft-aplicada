@@ -66,4 +66,10 @@ export class ProductsPage implements OnInit {
     }
     void this.cart.add(product);
   }
+
+  logout(): void {
+    this.auth.logout();
+    this.cart.reset();
+    void this.router.navigateByUrl('/products');
+  }
 }

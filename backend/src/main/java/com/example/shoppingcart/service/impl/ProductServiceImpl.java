@@ -71,9 +71,21 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
+    public Page<ProductDTO> findAllActive(Pageable pageable) {
+        return productRepository.findAllByActiveTrue(pageable).map(productMapper::toDto);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Optional<ProductDTO> findOne(Long id) {
         LOG.debug("Request to get Product : {}", id);
         return productRepository.findById(id).map(productMapper::toDto);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<ProductDTO> findOneActive(Long id) {
+        return productRepository.findByIdAndActiveTrue(id).map(productMapper::toDto);
     }
 
     @Override

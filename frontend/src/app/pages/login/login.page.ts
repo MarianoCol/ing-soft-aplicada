@@ -35,7 +35,7 @@ export class LoginPage {
       .login(this.username, this.password)
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
-        next: () => void this.router.navigateByUrl('/products'),
+        next: () => void this.router.navigateByUrl(this.auth.isAdmin() ? '/admin' : '/products'),
         error: () => this.error.set('Usuario o contraseña incorrectos'),
       });
   }

@@ -101,6 +101,15 @@ class CurrentCartServiceTest {
     }
 
     @Test
+    void shouldRejectInactiveProduct() {
+        Product product = new Product().id(1L).name("Retirado").price(new BigDecimal("19.99")).stock(10).active(false);
+        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+
+        assertThatThrownBy(() -> service.setQuantity(1L, 1)).isInstanceOf(ProductUnavailableException.class);
+        verify(cartItemRepository, never()).save(any());
+    }
+
+    @Test
     void shouldCreateCustomerAndPendingCartForAuthenticatedUser() {
         User user = new User();
         user.setLogin("user");

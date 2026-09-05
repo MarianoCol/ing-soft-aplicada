@@ -40,6 +40,10 @@ public class Product implements Serializable {
     @Column(name = "stock", nullable = false)
     private Integer stock;
 
+    @NotNull
+    @Column(name = "active", nullable = false)
+    private Boolean active = true;
+
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
     public Long getId() {
@@ -107,6 +111,19 @@ public class Product implements Serializable {
         this.stock = stock;
     }
 
+    public Boolean getActive() {
+        return active;
+    }
+
+    public Product active(Boolean active) {
+        this.setActive(active);
+        return this;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
+    }
+
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
 
     @Override
@@ -135,6 +152,7 @@ public class Product implements Serializable {
             ", description='" + getDescription() + "'" +
             ", price=" + getPrice() +
             ", stock=" + getStock() +
+            ", active=" + getActive() +
             "}";
     }
 }

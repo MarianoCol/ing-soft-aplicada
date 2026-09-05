@@ -1,0 +1,19 @@
+.page-title { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+.page-title h1 { margin-bottom: 0.2rem; }
+.page-title p { margin: 0; color: var(--ion-color-medium); }
+.metric-grid, .item-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 0.8rem; }
+.metric-grid ion-card { margin: 0; }
+.metric-grid ion-card-title { font-size: 2rem; }
+.toolbar-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.7rem; margin-bottom: 1rem; }
+.toolbar-row ion-searchbar { flex: 1 1 280px; padding: 0; }
+.toolbar-row ion-select { min-width: 170px; border: 1px solid var(--ion-color-light-shade); border-radius: 8px; padding: 0 0.6rem; }
+.form-card { padding: 1rem; margin: 0 0 1rem; border: 1px solid var(--ion-color-light-shade); border-radius: 12px; }
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.6rem; }
+.wide { grid-column: 1 / -1; }
+.actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
+.error { color: var(--ion-color-danger); font-weight: 600; }
+.success { color: var(--ion-color-success); font-weight: 600; }
+.muted { color: var(--ion-color-medium); }
+.pagination { display: flex; align-items: center; justify-content: center; gap: 1rem; margin: 1rem 0; }
+ion-list { border-radius: 12px; }
+@media (max-width: 680px) { .form-grid { grid-template-columns: 1fr; } .page-title { align-items: flex-start; } }
