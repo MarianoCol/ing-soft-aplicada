@@ -1,0 +1,12 @@
+.login-card {
+  max-width: 420px;
+  margin: 8vh auto;
+  padding: 2rem;
+  border-radius: 18px;
+  box-shadow: 0 12px 40px rgb(0 0 0 / 12%);
+  background: var(--ion-card-background, #fff);
+}
+
+.error {
+  color: var(--ion-color-danger);
+}

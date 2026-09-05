@@ -1,0 +1,140 @@
+name: shopping-cart
+
+services:
+  postgresql:
+    image: postgres:17-alpine
+    mem_limit: ${POSTGRES_MEMORY_LIMIT:-384m}
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-shoppingCart}
+      POSTGRES_USER: ${POSTGRES_USER:-shoppingCart}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-shoppingCart}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-shoppingCart} -d ${POSTGRES_DB:-shoppingCart}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks: [application]
+
+  backend:
+    build:
+      context: ./backend
+    image: ${DOCKERHUB_USERNAME:-local}/shopping-cart-backend:${IMAGE_TAG:-latest}
+    mem_limit: ${BACKEND_MEMORY_LIMIT:-768m}
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql:5432/${POSTGRES_DB:-shoppingCart}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-shoppingCart}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-shoppingCart}
+      SPRING_LIQUIBASE_CONTEXTS: prod,faker
+      JHIPSTER_SECURITY_AUTHENTICATION_JWT_BASE64_SECRET: ${JWT_BASE64_SECRET:-Y2hhbmdlLXRoaXMtdG8tYS1yYW5kb20tYmFzZTY0LXNlY3JldC1hdC1sZWFzdC02NC1ieXRlcy1sb25nLWJlZm9yZS1wcm9kdWN0aW9u}
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/management/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    logging:
+      driver: gelf
+      options:
+        gelf-address: udp://host.docker.internal:12201
+        tag: shopping-cart-backend
+    networks: [application]
+
+  frontend:
+    build:
+      context: ./frontend
+    image: ${DOCKERHUB_USERNAME:-local}/shopping-cart-frontend:${IMAGE_TAG:-latest}
+    mem_limit: ${FRONTEND_MEMORY_LIMIT:-128m}
+    ports:
+      - "8088:8080"
+    depends_on:
+      backend:
+        condition: service_healthy
+    logging:
+      driver: gelf
+      options:
+        gelf-address: udp://host.docker.internal:12201
+        tag: shopping-cart-frontend
+    networks: [application]
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION:-9.5.2}
+    profiles: [observability]
+    mem_limit: ${ELASTIC_MEMORY_LIMIT:-1280m}
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: ${ELASTIC_JAVA_OPTS:--Xms384m -Xmx384m}
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    networks: [observability]
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:${ELASTIC_VERSION:-9.5.2}
+    profiles: [observability]
+    mem_limit: ${LOGSTASH_MEMORY_LIMIT:-768m}
+    environment:
+      xpack.monitoring.enabled: "false"
+      LS_JAVA_OPTS: ${LOGSTASH_JAVA_OPTS:--Xms256m -Xmx256m}
+      pipeline.workers: "1"
+      pipeline.batch.size: "50"
+    ports:
+      - "12201:12201/udp"
+      - "9600:9600"
+    volumes:
+      - ./infra/elk/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://localhost:9600/_node/pipelines || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    networks: [observability]
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:${ELASTIC_VERSION:-9.5.2}
+    profiles: [observability]
+    mem_limit: ${KIBANA_MEMORY_LIMIT:-1280m}
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+      NODE_OPTIONS: ${KIBANA_NODE_OPTIONS:---max-old-space-size=768}
+    ports:
+      - "5601:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://localhost:5601/api/status || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    networks: [observability]
+
+networks:
+  application:
+  observability:
+
+volumes:
+  postgres-data:
+  elasticsearch-data:

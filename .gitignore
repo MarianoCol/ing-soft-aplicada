@@ -3,10 +3,12 @@
 ######################
 /node/
 node_tmp/
-node_modules/
+**/node_modules/
 npm-debug.log.*
 /.awcache/*
 /.cache-loader/*
+**/dist/
+**/www/
 
 ######################
 # SASS
@@ -20,7 +22,6 @@ npm-debug.log.*
 .project
 .metadata
 tmp/
-tmp/**/*
 *.tmp
 *.bak
 *.swp
@@ -30,9 +31,6 @@ local.properties
 .settings/
 .loadpath
 .factorypath
-src/main/docker/mysql/mysql.sock
-src/main/docker/jenkins/home/caches/
-src/main/docker/
 
 # External tool builders
 .externalToolBuilders/**
@@ -75,7 +73,7 @@ out/
 # Maven
 ######################
 /log/
-/target/
+**/target/
 
 ######################
 # Gradle
@@ -154,3 +152,11 @@ Desktop.ini
 ######################
 coverage/
 .nyc_output/
+
+######################
+# Local secrets and E2E artifacts
+######################
+.env
+.env.example
+**/cypress/screenshots/
+**/cypress/videos/

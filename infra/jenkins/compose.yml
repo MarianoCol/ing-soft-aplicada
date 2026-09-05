@@ -1,0 +1,23 @@
+name: shopping-cart-jenkins
+
+services:
+  jenkins:
+    build: .
+    mem_limit: ${JENKINS_MEMORY_LIMIT:-3g}
+    ports:
+      - "8081:8080"
+      - "50000:50000"
+    environment:
+      DOCKER_HOST: unix:///var/run/docker.sock
+      TESTCONTAINERS_HOST_OVERRIDE: host.docker.internal
+      JAVA_OPTS: -Xms256m -Xmx768m
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    group_add:
+      - "${DOCKER_SOCKET_GID:-0}"
+    volumes:
+      - jenkins-home:/var/jenkins_home
+      - ${DOCKER_DESKTOP_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock
+
+volumes:
+  jenkins-home:

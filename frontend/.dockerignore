@@ -1,0 +1,7 @@
+node_modules
+www
+.git
+.idea
+.vscode
+cypress/screenshots
+cypress/videos

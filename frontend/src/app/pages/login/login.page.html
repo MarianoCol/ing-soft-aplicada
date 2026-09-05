@@ -1,0 +1,26 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Carrito PWA</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <form class="login-card" (ngSubmit)="submit()">
+    <h1>Iniciar sesión</h1>
+    <p>Usá <code>user / user</code> para el entorno local.</p>
+    <ion-item>
+      <ion-label position="stacked">Usuario</ion-label>
+      <ion-input data-cy="username" name="username" [(ngModel)]="username" required></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label position="stacked">Contraseña</ion-label>
+      <ion-input data-cy="password" name="password" type="password" [(ngModel)]="password" required></ion-input>
+    </ion-item>
+    @if (error()) {
+      <p class="error" data-cy="login-error">{{ error() }}</p>
+    }
+    <ion-button data-cy="login-submit" expand="block" type="submit" [disabled]="loading()">
+      {{ loading() ? 'Ingresando…' : 'Ingresar' }}
+    </ion-button>
+  </form>
+</ion-content>

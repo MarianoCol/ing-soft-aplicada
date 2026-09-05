@@ -1,0 +1,25 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Tu carrito</ion-title>
+    <ion-button slot="end" fill="clear" color="light" routerLink="/products">Productos</ion-button>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-list data-cy="cart-items">
+    @for (item of cart.items(); track item.productId) {
+      <ion-item [attr.data-cy]="'cart-item-' + item.productId">
+        <ion-label>
+          <h2>{{ item.productName }}</h2>
+          <p>{{ item.quantity }} × {{ item.unitPrice | currency: 'USD' }}</p>
+          @if (item.error) { <p class="error">{{ item.error }}</p> }
+        </ion-label>
+        @if (item.syncState) { <ion-badge color="warning">{{ item.syncState }}</ion-badge> }
+        <strong slot="end">{{ item.totalPrice | currency: 'USD' }}</strong>
+      </ion-item>
+    } @empty {
+      <p class="empty">El carrito está vacío.</p>
+    }
+  </ion-list>
+  <h2 data-cy="cart-total">Total: {{ cart.total() | currency: 'USD' }}</h2>
+</ion-content>
