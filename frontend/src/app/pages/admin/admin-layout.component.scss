@@ -1,0 +1,11 @@
+.active { text-decoration: underline; text-underline-offset: 6px; }
+.offline-banner { background: var(--ion-color-warning); color: #241a00; padding: 0.55rem; text-align: center; font-weight: 600; }
+ion-router-outlet { top: 56px; }
+ion-router-outlet.with-offline-banner { top: 94px; }
+@media (max-width: 760px) {
+  ion-toolbar { --min-height: 108px; }
+  .admin-nav { position: absolute; inset: 48px 4px auto 4px; overflow-x: auto; justify-content: flex-start; }
+  .admin-nav ion-button { font-size: 0.72rem; min-width: max-content; }
+  ion-router-outlet { top: 108px; }
+  ion-router-outlet.with-offline-banner { top: 146px; }
+}

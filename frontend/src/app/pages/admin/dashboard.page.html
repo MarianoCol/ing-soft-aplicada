@@ -1,0 +1,15 @@
+<ion-content class="ion-padding">
+  <div class="page-title"><div><h1>Resumen</h1><p>Estado general de la tienda.</p></div><ion-button fill="outline" (click)="load()">Actualizar</ion-button></div>
+  @if (error()) { <p class="error">{{ error() }}</p> }
+  @if (summary(); as data) {
+    <section class="metric-grid" data-cy="admin-dashboard">
+      <ion-card><ion-card-header><ion-card-title>{{ data.activeProducts }}</ion-card-title></ion-card-header><ion-card-content>Productos activos</ion-card-content></ion-card>
+      <ion-card><ion-card-header><ion-card-title>{{ data.inactiveProducts }}</ion-card-title></ion-card-header><ion-card-content>Productos inactivos</ion-card-content></ion-card>
+      <ion-card><ion-card-header><ion-card-title>{{ data.pendingOrders }}</ion-card-title></ion-card-header><ion-card-content>Pedidos pendientes</ion-card-content></ion-card>
+      <ion-card><ion-card-header><ion-card-title>{{ data.completedOrders }}</ion-card-title></ion-card-header><ion-card-content>Pedidos completados</ion-card-content></ion-card>
+      <ion-card><ion-card-header><ion-card-title>{{ data.cancelledOrders }}</ion-card-title></ion-card-header><ion-card-content>Pedidos cancelados</ion-card-content></ion-card>
+      <ion-card><ion-card-header><ion-card-title>{{ data.activeUsers }}</ion-card-title></ion-card-header><ion-card-content>Usuarios activos</ion-card-content></ion-card>
+    </section>
+    <div class="actions"><ion-button routerLink="/admin/products">Administrar productos</ion-button><ion-button routerLink="/admin/orders" fill="outline">Revisar pedidos</ion-button></div>
+  } @else if (!error()) { <ion-spinner></ion-spinner> }
+</ion-content>

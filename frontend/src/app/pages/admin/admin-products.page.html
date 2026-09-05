@@ -1,0 +1,35 @@
+<ion-content class="ion-padding">
+  <div class="page-title"><div><h1>Productos</h1><p>Catálogo, precios y existencias.</p></div><ion-button data-cy="new-product" (click)="newProduct()">Nuevo</ion-button></div>
+  @if (error()) { <p class="error">{{ error() }}</p> }
+  @if (message()) { <p class="success">{{ message() }}</p> }
+
+  <form class="form-card" (ngSubmit)="save()" data-cy="product-form">
+    <h2>{{ editing() ? 'Editar producto' : 'Agregar producto' }}</h2>
+    <div class="form-grid">
+      <ion-input data-cy="product-name" label="Nombre" labelPlacement="stacked" name="name" [(ngModel)]="draft.name" required></ion-input>
+      <ion-input data-cy="product-price" label="Precio" labelPlacement="stacked" name="price" type="number" min="0" step="0.01" [(ngModel)]="draft.price" required></ion-input>
+      <ion-input data-cy="product-stock" label="Stock" labelPlacement="stacked" name="stock" type="number" min="0" step="1" [(ngModel)]="draft.stock" required></ion-input>
+      <ion-textarea class="wide" label="Descripción" labelPlacement="stacked" name="description" [(ngModel)]="draft.description"></ion-textarea>
+    </div>
+    <div class="actions"><ion-button type="submit" data-cy="save-product">Guardar</ion-button>@if (editing()) { <ion-button fill="clear" (click)="newProduct()">Cancelar</ion-button> }</div>
+  </form>
+
+  <div class="toolbar-row">
+    <ion-searchbar placeholder="Buscar por nombre o descripción" [value]="search" debounce="350" (ionInput)="search = $any($event).detail.value ?? ''; page = 0; load()"></ion-searchbar>
+    <ion-select label="Estado" [value]="active" (ionChange)="active = $any($event).detail.value; page = 0; load()">
+      <ion-select-option value="">Todos</ion-select-option><ion-select-option value="true">Activos</ion-select-option><ion-select-option value="false">Inactivos</ion-select-option>
+    </ion-select>
+  </div>
+  <ion-list data-cy="admin-products">
+    @for (product of products(); track product.id) {
+      <ion-item [attr.data-cy]="'admin-product-' + product.id">
+        <ion-label><h2>{{ product.name }}</h2><p>{{ product.price.toFixed(2) }} USD · stock {{ product.stock }}</p><p>{{ product.description }}</p></ion-label>
+        <ion-badge [color]="product.active ? 'success' : 'medium'">{{ product.active ? 'Activo' : 'Inactivo' }}</ion-badge>
+        <ion-button fill="clear" (click)="edit(product)">Editar</ion-button>
+        <ion-button fill="clear" [color]="product.active ? 'warning' : 'success'" (click)="toggle(product)">{{ product.active ? 'Desactivar' : 'Reactivar' }}</ion-button>
+        @if (product.deletable) { <ion-button fill="clear" color="danger" (click)="remove(product)">Eliminar</ion-button> }
+      </ion-item>
+    } @empty { <ion-item><ion-label>No hay productos para este filtro.</ion-label></ion-item> }
+  </ion-list>
+  <div class="pagination"><ion-button fill="outline" [disabled]="page === 0" (click)="previous()">Anterior</ion-button><span>Página {{ page + 1 }}</span><ion-button fill="outline" [disabled]="(page + 1) * 10 >= total()" (click)="next()">Siguiente</ion-button></div>
+</ion-content>
