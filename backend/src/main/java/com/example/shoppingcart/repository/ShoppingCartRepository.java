@@ -2,9 +2,9 @@ package com.example.shoppingcart.repository;
 
 import com.example.shoppingcart.domain.ShoppingCart;
 import com.example.shoppingcart.domain.enumeration.OrderStatus;
+import jakarta.persistence.LockModeType;
 import java.util.List;
 import java.util.Optional;
-import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.*;
