@@ -1,11 +1,16 @@
 <ion-header>
   <ion-toolbar color="primary">
     <ion-title>Productos</ion-title>
-    @if (auth.isAdmin()) { <ion-button slot="end" fill="clear" color="light" routerLink="/admin" data-cy="open-admin">Administrar</ion-button> }
-    @if (auth.isAuthenticated()) { <ion-button slot="end" fill="clear" color="light" (click)="logout()">Salir</ion-button> }
-    <ion-button slot="end" fill="clear" color="light" routerLink="/cart" data-cy="open-cart">
-      Carrito <ion-badge data-cy="cart-count">{{ cart.count() }}</ion-badge>
-    </ion-button>
+    @if (auth.isAuthenticated()) {
+      @if (auth.isAdmin()) { <ion-button slot="end" fill="clear" color="light" routerLink="/admin" data-cy="open-admin">Administrar</ion-button> }
+      <ion-button slot="end" fill="clear" color="light" routerLink="/cart" data-cy="open-cart">
+        Carrito <ion-badge data-cy="cart-count">{{ cart.count() }}</ion-badge>
+      </ion-button>
+      <ion-button slot="end" fill="clear" color="light" (click)="logout()" data-cy="logout">Salir</ion-button>
+    } @else {
+      <ion-button slot="end" fill="clear" color="light" routerLink="/login" data-cy="open-login">Ingresar</ion-button>
+      <ion-button slot="end" fill="outline" color="light" routerLink="/register" data-cy="open-register">Registrarse</ion-button>
+    }
   </ion-toolbar>
 </ion-header>
 
@@ -20,7 +25,11 @@
       <ion-card [attr.data-cy]="'product-' + product.id">
         <ion-card-header>
           <ion-card-title>{{ product.name }}</ion-card-title>
-          <ion-card-subtitle>{{ product.price.toFixed(2) }} USD · stock {{ product.stock }}</ion-card-subtitle>
+          @if (hasPrice(product)) {
+            <ion-card-subtitle data-cy="product-price">{{ product.price.toFixed(2) }} USD · stock {{ product.stock }}</ion-card-subtitle>
+          } @else {
+            <ion-card-subtitle data-cy="product-price-hidden">Iniciá sesión para ver el precio · stock {{ product.stock }}</ion-card-subtitle>
+          }
         </ion-card-header>
         <ion-card-content>
           <p>{{ product.description }}</p>

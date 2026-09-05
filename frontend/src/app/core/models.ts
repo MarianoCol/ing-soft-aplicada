@@ -1,10 +1,19 @@
-export interface Product {
+export interface CatalogProduct {
   id: number;
   name: string;
   description?: string;
-  price: number;
   stock: number;
+}
+
+export interface Product extends CatalogProduct {
+  price: number;
   active?: boolean;
+}
+
+export interface RegisterRequest {
+  login: string;
+  email: string;
+  password: string;
 }
 
 export interface Account {

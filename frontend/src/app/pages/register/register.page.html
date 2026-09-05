@@ -1,0 +1,40 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Crear cuenta</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <form class="register-card" (ngSubmit)="submit()" novalidate>
+    <h1>Registrarse</h1>
+    <ion-item>
+      <ion-label position="stacked">Usuario</ion-label>
+      <ion-input data-cy="register-login" name="login" [(ngModel)]="login" maxlength="50" required></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label position="stacked">Email</ion-label>
+      <ion-input data-cy="register-email" name="email" type="email" [(ngModel)]="email" maxlength="254" required></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label position="stacked">Contraseña</ion-label>
+      <ion-input data-cy="register-password" name="password" type="password" [(ngModel)]="password" minlength="4" maxlength="100" required></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label position="stacked">Confirmar contraseña</ion-label>
+      <ion-input data-cy="register-password-confirmation" name="passwordConfirmation" type="password" [(ngModel)]="passwordConfirmation" required></ion-input>
+    </ion-item>
+    @if (submitted() && passwordsDiffer()) {
+      <p class="error">Las contraseñas no coinciden</p>
+    }
+    @if (submitted() && !passwordsDiffer() && password.length < 4) {
+      <p class="error">La contraseña debe tener al menos 4 caracteres</p>
+    }
+    @if (error()) {
+      <p class="error" data-cy="register-error">{{ error() }}</p>
+    }
+    <ion-button data-cy="register-submit" expand="block" type="submit" [disabled]="loading()">
+      {{ loading() ? 'Creando cuenta…' : 'Crear cuenta' }}
+    </ion-button>
+    <p class="auth-link">¿Ya tenés cuenta? <a routerLink="/login">Iniciá sesión</a></p>
+  </form>
+</ion-content>

@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
   IonButton,
   IonContent,
@@ -18,15 +18,22 @@ import { AuthService } from '../../core/auth.service';
   selector: 'app-login',
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss'],
-  imports: [FormsModule, IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonInput, IonLabel, IonButton],
+  imports: [FormsModule, RouterLink, IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonInput, IonLabel, IonButton],
 })
 export class LoginPage {
-  username = 'user';
-  password = 'user';
+  username = '';
+  password = '';
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
+  readonly accountCreated: boolean;
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+
+  constructor() {
+    this.accountCreated = this.route.snapshot.queryParamMap.get('registered') === 'true';
+    this.username = this.route.snapshot.queryParamMap.get('username') ?? '';
+  }
 
   submit(): void {
     this.loading.set(true);

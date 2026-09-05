@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import {
   IonBadge,
@@ -15,7 +15,7 @@ import {
 } from '@ionic/angular';
 import { CartService } from '../../core/cart.service';
 import { AuthService } from '../../core/auth.service';
-import { Product } from '../../core/models';
+import { CatalogProduct, Product } from '../../core/models';
 import { ProductService } from '../../core/product.service';
 
 @Component({
@@ -37,8 +37,8 @@ import { ProductService } from '../../core/product.service';
     IonBadge,
   ],
 })
-export class ProductsPage implements OnInit {
-  readonly products = signal<Product[]>([]);
+export class ProductsPage {
+  readonly products = signal<CatalogProduct[]>([]);
   readonly error = signal<string | null>(null);
   readonly online = signal(navigator.onLine);
   readonly cart = inject(CartService);
@@ -51,25 +51,53 @@ export class ProductsPage implements OnInit {
     window.addEventListener('offline', () => this.online.set(false));
   }
 
-  ngOnInit(): void {
+  ionViewWillEnter(): void {
     void this.cart.initialize();
-    this.productsApi.list().subscribe({
-      next: (products) => this.products.set(products),
-      error: () => this.error.set('No hay catálogo cacheado todavía. Conectate una vez para descargarlo.'),
-    });
+    this.loadProducts();
   }
 
-  add(product: Product): void {
+  add(product: CatalogProduct): void {
     if (!this.auth.isAuthenticated()) {
       void this.router.navigate(['/login']);
+      return;
+    }
+    if (!this.hasPrice(product)) {
+      this.error.set('Necesitás conexión para consultar el precio y agregar el producto.');
       return;
     }
     void this.cart.add(product);
   }
 
+  hasPrice(product: CatalogProduct): product is Product {
+    return 'price' in product && typeof product.price === 'number';
+  }
+
   logout(): void {
     this.auth.logout();
     this.cart.reset();
-    void this.router.navigateByUrl('/products');
+    this.products.set([]);
+    this.loadPublicProducts(false);
+  }
+
+  private loadProducts(): void {
+    this.error.set(null);
+    if (!this.auth.isAuthenticated()) {
+      this.loadPublicProducts(false);
+      return;
+    }
+    this.productsApi.listForMember().subscribe({
+      next: (products) => this.products.set(products),
+      error: () => this.loadPublicProducts(true),
+    });
+  }
+
+  private loadPublicProducts(pricesUnavailable: boolean): void {
+    this.productsApi.listPublic().subscribe({
+      next: (products) => {
+        this.products.set(products);
+        this.error.set(pricesUnavailable ? 'Sin conexión: precios no disponibles.' : null);
+      },
+      error: () => this.error.set('No hay catálogo cacheado todavía. Conectate una vez para descargarlo.'),
+    });
   }
 }

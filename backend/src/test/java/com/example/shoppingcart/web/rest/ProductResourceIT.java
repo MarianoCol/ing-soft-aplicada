@@ -214,7 +214,7 @@ class ProductResourceIT {
             .andExpect(jsonPath("$.[*].id").value(hasItem(product.getId().intValue())))
             .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME)))
             .andExpect(jsonPath("$.[*].description").value(hasItem(DEFAULT_DESCRIPTION)))
-            .andExpect(jsonPath("$.[*].price").value(hasItem(sameNumber(DEFAULT_PRICE))))
+            .andExpect(jsonPath("$.[*].price").doesNotExist())
             .andExpect(jsonPath("$.[*].stock").value(hasItem(DEFAULT_STOCK)));
     }
 
@@ -232,7 +232,7 @@ class ProductResourceIT {
             .andExpect(jsonPath("$.id").value(product.getId().intValue()))
             .andExpect(jsonPath("$.name").value(DEFAULT_NAME))
             .andExpect(jsonPath("$.description").value(DEFAULT_DESCRIPTION))
-            .andExpect(jsonPath("$.price").value(sameNumber(DEFAULT_PRICE)))
+            .andExpect(jsonPath("$.price").doesNotExist())
             .andExpect(jsonPath("$.stock").value(DEFAULT_STOCK));
     }
 
@@ -241,6 +241,24 @@ class ProductResourceIT {
     void getNonExistingProduct() throws Exception {
         // Get the product
         restProductMockMvc.perform(get(ENTITY_API_URL_ID, Long.MAX_VALUE)).andExpect(status().isNotFound());
+    }
+
+    @Test
+    @Transactional
+    void getMemberProductsWithPrices() throws Exception {
+        insertedProduct = productRepository.saveAndFlush(product);
+
+        restProductMockMvc
+            .perform(get("/api/member/products?sort=id,desc"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.[*].id").value(hasItem(product.getId().intValue())))
+            .andExpect(jsonPath("$.[*].price").value(hasItem(sameNumber(DEFAULT_PRICE))));
+    }
+
+    @Test
+    @WithUnauthenticatedMockUser
+    void memberProductsRequireAuthentication() throws Exception {
+        restProductMockMvc.perform(get("/api/member/products")).andExpect(status().isUnauthorized());
     }
 
     @Test

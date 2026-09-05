@@ -35,4 +35,32 @@ describe('AuthService', () => {
     expect(service.isAuthenticated()).toBe(false);
     expect(service.account()).toBeNull();
   });
+
+  it('registers an account and logs the new user in', () => {
+    let authenticated: boolean | undefined;
+    service.registerAndLogin({ login: 'new-user', email: 'new@example.com', password: 'secret' }).subscribe((value) => {
+      authenticated = value;
+    });
+
+    http.expectOne('/api/register').flush(null, { status: 201, statusText: 'Created' });
+    http.expectOne('/api/authenticate').flush({ id_token: 'new-jwt' });
+    http.expectOne('/api/account').flush({
+      id: 2, login: 'new-user', email: 'new@example.com', activated: true, authorities: ['ROLE_USER'],
+    });
+
+    expect(authenticated).toBe(true);
+    expect(service.username()).toBe('new-user');
+  });
+
+  it('reports a created account when the automatic login fails', () => {
+    let authenticated: boolean | undefined;
+    service.registerAndLogin({ login: 'new-user', email: 'new@example.com', password: 'secret' }).subscribe((value) => {
+      authenticated = value;
+    });
+
+    http.expectOne('/api/register').flush(null, { status: 201, statusText: 'Created' });
+    http.expectOne('/api/authenticate').flush({}, { status: 401, statusText: 'Unauthorized' });
+
+    expect(authenticated).toBe(false);
+  });
 });
