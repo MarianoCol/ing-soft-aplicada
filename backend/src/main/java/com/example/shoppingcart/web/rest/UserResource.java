@@ -4,6 +4,7 @@ import com.example.shoppingcart.config.Constants;
 import com.example.shoppingcart.domain.User;
 import com.example.shoppingcart.repository.UserRepository;
 import com.example.shoppingcart.security.AuthoritiesConstants;
+import com.example.shoppingcart.security.SecurityUtils;
 import com.example.shoppingcart.service.MailService;
 import com.example.shoppingcart.service.UserService;
 import com.example.shoppingcart.service.dto.AdminUserDTO;
@@ -138,6 +139,22 @@ public class UserResource {
         @Valid @RequestBody AdminUserDTO userDTO
     ) {
         LOG.debug("REST request to update User : {}", userDTO);
+        String currentLogin = SecurityUtils.getCurrentUserLogin().orElse("");
+        boolean updatingSelf = userDTO.getId() != null &&
+            userRepository
+                .findById(userDTO.getId())
+                .map(existing -> currentLogin.equalsIgnoreCase(existing.getLogin()))
+                .orElse(false);
+        if (
+            updatingSelf &&
+            (!userDTO.isActivated() || userDTO.getAuthorities() == null || !userDTO.getAuthorities().contains(AuthoritiesConstants.ADMIN))
+        ) {
+            throw new BadRequestAlertException(
+                "You cannot deactivate yourself or remove your own administrator role",
+                "userManagement",
+                "selfprotection"
+            );
+        }
         Optional<User> existingUser = userRepository.findOneByEmailIgnoreCase(userDTO.getEmail());
         if (existingUser.isPresent() && !existingUser.orElseThrow().getId().equals(userDTO.getId())) {
             throw new EmailAlreadyUsedException();
@@ -200,6 +217,9 @@ public class UserResource {
     @PreAuthorize("hasAuthority(\"" + AuthoritiesConstants.ADMIN + "\")")
     public ResponseEntity<Void> deleteUser(@PathVariable("login") @Pattern(regexp = Constants.LOGIN_REGEX) String login) {
         LOG.debug("REST request to delete User: {}", login);
+        if (SecurityUtils.getCurrentUserLogin().map(login::equalsIgnoreCase).orElse(false)) {
+            throw new BadRequestAlertException("You cannot delete your own administrator account", "userManagement", "selfprotection");
+        }
         userService.deleteUser(login);
         return ResponseEntity.noContent()
             .headers(HeaderUtil.createAlert(applicationName, "userManagement.deleted", login))
