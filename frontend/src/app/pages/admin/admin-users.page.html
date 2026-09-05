@@ -1,0 +1,17 @@
+<ion-content class="ion-padding">
+  <div class="page-title"><div><h1>Usuarios</h1><p>Activación y autoridades.</p></div><ion-button fill="outline" (click)="load()">Actualizar</ion-button></div>
+  @if (error()) { <p class="error">{{ error() }}</p> }
+  @if (message()) { <p class="success">{{ message() }}</p> }
+  <ion-list data-cy="admin-users">
+    @for (user of users(); track user.id) {
+      <ion-item [attr.data-cy]="'admin-user-' + user.login">
+        <ion-label><h2>{{ user.login }} @if (isCurrent(user)) { <span class="muted">(vos)</span> }</h2><p>{{ user.firstName }} {{ user.lastName }} · {{ user.email }}</p></ion-label>
+        <ion-badge [color]="user.activated ? 'success' : 'medium'">{{ user.activated ? 'Activo' : 'Inactivo' }}</ion-badge>
+        @if (isAdmin(user)) { <ion-badge color="tertiary">Admin</ion-badge> }
+        <ion-button fill="clear" [disabled]="isCurrent(user)" (click)="toggleActive(user)">{{ user.activated ? 'Desactivar' : 'Activar' }}</ion-button>
+        <ion-button fill="clear" [disabled]="isCurrent(user)" (click)="toggleAdmin(user)">{{ isAdmin(user) ? 'Quitar admin' : 'Hacer admin' }}</ion-button>
+      </ion-item>
+    } @empty { <ion-item><ion-label>No hay usuarios.</ion-label></ion-item> }
+  </ion-list>
+  <div class="pagination"><ion-button fill="outline" [disabled]="page === 0" (click)="previous()">Anterior</ion-button><span>Página {{ page + 1 }}</span><ion-button fill="outline" [disabled]="(page + 1) * 10 >= total()" (click)="next()">Siguiente</ion-button></div>
+</ion-content>

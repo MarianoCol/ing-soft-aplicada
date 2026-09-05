@@ -2,6 +2,7 @@ package com.example.shoppingcart.repository;
 
 import com.example.shoppingcart.domain.ShoppingCart;
 import com.example.shoppingcart.domain.enumeration.OrderStatus;
+import jakarta.persistence.LockModeType;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
@@ -16,6 +17,18 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ShoppingCartRepository extends JpaRepository<ShoppingCart, Long> {
     Optional<ShoppingCart> findFirstByCustomerIdAndStatusOrderByPlacedDateDesc(Long customerId, OrderStatus status);
+
+    long countByStatus(OrderStatus status);
+
+    @Query(
+        value = "select c from ShoppingCart c left join fetch c.customer where (:status is null or c.status = :status)",
+        countQuery = "select count(c) from ShoppingCart c where (:status is null or c.status = :status)"
+    )
+    Page<ShoppingCart> findForAdmin(@Param("status") OrderStatus status, Pageable pageable);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select c from ShoppingCart c left join fetch c.customer where c.id = :id")
+    Optional<ShoppingCart> findByIdForUpdate(@Param("id") Long id);
 
     default Optional<ShoppingCart> findOneWithEagerRelationships(Long id) {
         return this.findOneWithToOneRelationships(id);

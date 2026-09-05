@@ -1,0 +1,33 @@
+<ion-content class="ion-padding">
+  <div class="page-title"><div><h1>Pedidos</h1><p>Consulta y cierre de carritos.</p></div><ion-button fill="outline" (click)="load()">Actualizar</ion-button></div>
+  @if (error()) { <p class="error">{{ error() }}</p> }
+  @if (message()) { <p class="success">{{ message() }}</p> }
+  <div class="toolbar-row">
+    <ion-select label="Estado" [value]="status" (ionChange)="status = $any($event).detail.value; page = 0; selected.set(null); load()">
+      <ion-select-option value="">Todos</ion-select-option><ion-select-option value="PENDING">Pendientes</ion-select-option><ion-select-option value="COMPLETED">Completados</ion-select-option><ion-select-option value="CANCELLED">Cancelados</ion-select-option>
+    </ion-select>
+  </div>
+  <ion-list data-cy="admin-orders">
+    @for (order of orders(); track order.id) {
+      <ion-item button (click)="open(order)" [attr.data-cy]="'admin-order-' + order.id">
+        <ion-label><h2>Pedido #{{ order.id }} · {{ order.customerName }}</h2><p>{{ order.customerEmail }} · {{ order.placedDate | date:'short' }}</p></ion-label>
+        <ion-badge [color]="order.status === 'PENDING' ? 'warning' : order.status === 'COMPLETED' ? 'success' : 'medium'">{{ statusLabel(order.status) }}</ion-badge>
+        <strong slot="end">{{ order.totalPrice | currency:'USD' }}</strong>
+      </ion-item>
+    } @empty { <ion-item><ion-label>No hay pedidos para este filtro.</ion-label></ion-item> }
+  </ion-list>
+  <div class="pagination"><ion-button fill="outline" [disabled]="page === 0" (click)="previous()">Anterior</ion-button><span>Página {{ page + 1 }}</span><ion-button fill="outline" [disabled]="(page + 1) * 10 >= total()" (click)="next()">Siguiente</ion-button></div>
+
+  @if (selected(); as order) {
+    <section class="form-card" data-cy="order-detail">
+      <div class="page-title"><div><h2>Pedido #{{ order.id }}</h2><p>{{ order.customerName }} · {{ order.customerEmail }}</p></div><ion-badge>{{ statusLabel(order.status) }}</ion-badge></div>
+      <ion-list>
+        @for (item of order.items; track item.id) {
+          <ion-item><ion-label><h3>{{ item.productName }}</h3><p>{{ item.quantity }} × {{ item.unitPrice | currency:'USD' }}</p></ion-label><strong slot="end">{{ item.totalPrice | currency:'USD' }}</strong></ion-item>
+        } @empty { <ion-item><ion-label>El pedido no tiene ítems.</ion-label></ion-item> }
+      </ion-list>
+      <h3>Total: {{ order.totalPrice | currency:'USD' }}</h3>
+      @if (order.status === 'PENDING') { <div class="actions"><ion-button color="success" data-cy="complete-order" (click)="change('COMPLETED')">Completar y descontar stock</ion-button><ion-button color="danger" fill="outline" (click)="change('CANCELLED')">Cancelar</ion-button></div> }
+    </section>
+  }
+</ion-content>

@@ -16,10 +16,29 @@
         </ion-label>
         @if (item.syncState) { <ion-badge color="warning">{{ item.syncState }}</ion-badge> }
         <strong slot="end">{{ item.totalPrice | currency: 'USD' }}</strong>
+        <ion-button
+          slot="end"
+          fill="clear"
+          color="danger"
+          [attr.aria-label]="'Eliminar ' + item.productName"
+          [attr.data-cy]="'remove-item-' + item.productId"
+          (click)="remove(item)"
+        >
+          Eliminar
+        </ion-button>
       </ion-item>
     } @empty {
       <p class="empty">El carrito está vacío.</p>
     }
   </ion-list>
   <h2 data-cy="cart-total">Total: {{ cart.total() | currency: 'USD' }}</h2>
+  @if (cart.message()) { <p class="cart-message" role="status">{{ cart.message() }}</p> }
+  <ion-button
+    expand="block"
+    data-cy="checkout"
+    [disabled]="cart.items().length === 0 || cart.checkingOut()"
+    (click)="checkout()"
+  >
+    {{ cart.checkingOut() ? 'Procesando…' : 'Finalizar compra' }}
+  </ion-button>
 </ion-content>

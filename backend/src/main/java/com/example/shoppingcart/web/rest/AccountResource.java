@@ -10,6 +10,7 @@ import com.example.shoppingcart.service.dto.PasswordChangeDTO;
 import com.example.shoppingcart.web.rest.errors.*;
 import com.example.shoppingcart.web.rest.vm.KeyAndPasswordVM;
 import com.example.shoppingcart.web.rest.vm.ManagedUserVM;
+import com.example.shoppingcart.web.rest.vm.RegisterRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
@@ -63,20 +64,16 @@ public class AccountResource {
     /**
      * {@code POST  /register} : register the user.
      *
-     * @param managedUserVM the managed user View Model.
+     * @param request the registration request.
      * @throws InvalidPasswordException {@code 400 (Bad Request)} if the password is incorrect.
      * @throws EmailAlreadyUsedException {@code 400 (Bad Request)} if the email is already used.
      * @throws LoginAlreadyUsedException {@code 400 (Bad Request)} if the login is already used.
      */
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public void registerAccount(@Valid @RequestBody ManagedUserVM managedUserVM) {
+    public void registerAccount(@Valid @RequestBody RegisterRequest request) {
         LOG.debug("REST request to register account");
-        if (isPasswordLengthInvalid(managedUserVM.getPassword())) {
-            throw new InvalidPasswordException();
-        }
-        User user = userService.registerUser(managedUserVM, managedUserVM.getPassword());
-        mailService.sendActivationEmail(user);
+        userService.registerUser(request.login(), request.email(), request.password());
     }
 
     /**

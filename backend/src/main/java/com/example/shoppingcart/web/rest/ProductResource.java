@@ -2,6 +2,7 @@ package com.example.shoppingcart.web.rest;
 
 import com.example.shoppingcart.repository.ProductRepository;
 import com.example.shoppingcart.service.ProductService;
+import com.example.shoppingcart.service.dto.CatalogProductDTO;
 import com.example.shoppingcart.service.dto.ProductDTO;
 import com.example.shoppingcart.web.rest.errors.BadRequestAlertException;
 import jakarta.validation.Valid;
@@ -142,11 +143,11 @@ public class ProductResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of Products in body.
      */
     @GetMapping("")
-    public ResponseEntity<List<ProductDTO>> getAllProducts(@org.springdoc.core.annotations.ParameterObject Pageable pageable) {
+    public ResponseEntity<List<CatalogProductDTO>> getAllProducts(@org.springdoc.core.annotations.ParameterObject Pageable pageable) {
         LOG.debug("REST request to get a page of Products");
-        Page<ProductDTO> page = productService.findAll(pageable);
+        Page<ProductDTO> page = productService.findAllActive(pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
-        return ResponseEntity.ok().headers(headers).body(page.getContent());
+        return ResponseEntity.ok().headers(headers).body(page.map(CatalogProductDTO::from).getContent());
     }
 
     /**
@@ -156,9 +157,9 @@ public class ProductResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the productDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/{id}")
-    public ResponseEntity<ProductDTO> getProduct(@PathVariable("id") Long id) {
+    public ResponseEntity<CatalogProductDTO> getProduct(@PathVariable("id") Long id) {
         LOG.debug("REST request to get Product : {}", id);
-        Optional<ProductDTO> productDTO = productService.findOne(id);
+        Optional<CatalogProductDTO> productDTO = productService.findOneActive(id).map(CatalogProductDTO::from);
         return ResponseUtil.wrapOrNotFound(productDTO);
     }
 

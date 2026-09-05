@@ -465,6 +465,33 @@ class UserResourceIT {
     }
 
     @Test
+    @Transactional
+    @WithMockUser(username = DEFAULT_LOGIN, authorities = AuthoritiesConstants.ADMIN)
+    void shouldNotDeactivateCurrentAdministrator() throws Exception {
+        userRepository.saveAndFlush(user);
+        AdminUserDTO userDTO = new AdminUserDTO(user);
+        userDTO.setActivated(false);
+        userDTO.setAuthorities(Set.of(AuthoritiesConstants.ADMIN, AuthoritiesConstants.USER));
+
+        restUserMockMvc
+            .perform(put("/api/admin/users").contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(userDTO)))
+            .andExpect(status().isBadRequest());
+
+        assertThat(userRepository.findById(user.getId()).orElseThrow().isActivated()).isTrue();
+    }
+
+    @Test
+    @Transactional
+    @WithMockUser(username = DEFAULT_LOGIN, authorities = AuthoritiesConstants.ADMIN)
+    void shouldNotDeleteCurrentAdministrator() throws Exception {
+        userRepository.saveAndFlush(user);
+
+        restUserMockMvc.perform(delete("/api/admin/users/{login}", DEFAULT_LOGIN)).andExpect(status().isBadRequest());
+
+        assertThat(userRepository.findOneByLogin(DEFAULT_LOGIN)).isPresent();
+    }
+
+    @Test
     void testUserEquals() throws Exception {
         TestUtil.equalsVerifier(User.class);
         User user1 = new User();

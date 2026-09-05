@@ -1,0 +1,17 @@
+<ion-header>
+    <ion-toolbar color="dark">
+      <ion-title>Administración</ion-title>
+      <ion-buttons slot="end" class="admin-nav">
+        <ion-button routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Resumen</ion-button>
+        <ion-button routerLink="/admin/products" routerLinkActive="active">Productos</ion-button>
+        <ion-button routerLink="/admin/orders" routerLinkActive="active">Pedidos</ion-button>
+        <ion-button routerLink="/admin/users" routerLinkActive="active">Usuarios</ion-button>
+        <ion-button routerLink="/products">Tienda</ion-button>
+        <ion-button color="danger" (click)="logout()">Salir</ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+    @if (!online()) {
+      <div class="offline-banner">El panel administrativo requiere conexión.</div>
+    }
+</ion-header>
+<ion-router-outlet [class.with-offline-banner]="!online()"></ion-router-outlet>

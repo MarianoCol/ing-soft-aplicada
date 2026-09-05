@@ -19,6 +19,8 @@ public interface CartItemRepository extends JpaRepository<CartItem, Long> {
 
     Optional<CartItem> findOneByCartIdAndProductId(Long cartId, Long productId);
 
+    boolean existsByProductId(Long productId);
+
     default Optional<CartItem> findOneWithEagerRelationships(Long id) {
         return this.findOneWithToOneRelationships(id);
     }

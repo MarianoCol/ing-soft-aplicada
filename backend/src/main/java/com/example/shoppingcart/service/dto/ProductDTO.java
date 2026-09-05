@@ -26,6 +26,9 @@ public class ProductDTO implements Serializable {
     @Min(value = 0)
     private Integer stock;
 
+    @NotNull
+    private Boolean active = true;
+
     public Long getId() {
         return id;
     }
@@ -66,6 +69,14 @@ public class ProductDTO implements Serializable {
         this.stock = stock;
     }
 
+    public Boolean getActive() {
+        return active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -96,6 +107,7 @@ public class ProductDTO implements Serializable {
             ", description='" + getDescription() + "'" +
             ", price=" + getPrice() +
             ", stock=" + getStock() +
+            ", active=" + getActive() +
             "}";
     }
 }

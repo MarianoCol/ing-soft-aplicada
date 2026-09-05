@@ -1,9 +1,77 @@
-export interface Product {
+export interface CatalogProduct {
   id: number;
   name: string;
   description?: string;
-  price: number;
   stock: number;
+}
+
+export interface Product extends CatalogProduct {
+  price: number;
+  active?: boolean;
+}
+
+export interface RegisterRequest {
+  login: string;
+  email: string;
+  password: string;
+}
+
+export interface Account {
+  id: number;
+  login: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  activated: boolean;
+  authorities: string[];
+}
+
+export interface AdminProduct extends Product {
+  active: boolean;
+  deletable: boolean;
+}
+
+export type OrderStatus = 'PENDING' | 'COMPLETED' | 'CANCELLED';
+
+export interface AdminOrderSummary {
+  id: number;
+  placedDate: string;
+  status: OrderStatus;
+  totalPrice: number;
+  customerId: number;
+  customerName: string;
+  customerEmail: string;
+}
+
+export interface AdminOrderItem {
+  id: number;
+  quantity: number;
+  totalPrice: number;
+  productId: number;
+  productName: string;
+  unitPrice: number;
+}
+
+export interface AdminOrderDetail extends AdminOrderSummary {
+  items: AdminOrderItem[];
+}
+
+export interface AdminDashboard {
+  activeProducts: number;
+  inactiveProducts: number;
+  pendingOrders: number;
+  completedOrders: number;
+  cancelledOrders: number;
+  activeUsers: number;
+}
+
+export interface AdminUser extends Account {
+  imageUrl?: string;
+  langKey?: string;
+  createdBy?: string;
+  createdDate?: string;
+  lastModifiedBy?: string;
+  lastModifiedDate?: string;
 }
 
 export interface CartItemView {

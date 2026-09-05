@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -101,6 +102,15 @@ class CurrentCartServiceTest {
     }
 
     @Test
+    void shouldRejectInactiveProduct() {
+        Product product = new Product().id(1L).name("Retirado").price(new BigDecimal("19.99")).stock(10).active(false);
+        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+
+        assertThatThrownBy(() -> service.setQuantity(1L, 1)).isInstanceOf(ProductUnavailableException.class);
+        verify(cartItemRepository, never()).save(any());
+    }
+
+    @Test
     void shouldCreateCustomerAndPendingCartForAuthenticatedUser() {
         User user = new User();
         user.setLogin("user");
@@ -155,5 +165,104 @@ class CurrentCartServiceTest {
 
         assertThatThrownBy(() -> service.setQuantity(1L, 1)).isInstanceOf(CartNotEditableException.class);
         verify(cartItemRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldRemoveItemAndRecalculateCartTotal() {
+        Customer customer = customer();
+        ShoppingCart cart = pendingCart(customer);
+        Product product = product(1L, 10, "12.50");
+        CartItem item = new CartItem().id(30L).cart(cart).product(product).quantity(2).totalPrice(new BigDecimal("25.00"));
+
+        when(customerRepository.findOneByUserLogin("user")).thenReturn(Optional.of(customer));
+        when(shoppingCartRepository.findFirstByCustomerIdAndStatusOrderByPlacedDateDesc(10L, OrderStatus.PENDING)).thenReturn(
+            Optional.of(cart)
+        );
+        when(cartItemRepository.findOneByCartIdAndProductId(20L, 1L)).thenReturn(Optional.of(item));
+        when(cartItemRepository.findAllByCartIdOrderById(20L)).thenReturn(List.of());
+
+        var result = service.removeItem(1L);
+
+        verify(cartItemRepository).delete(item);
+        assertThat(result.items()).isEmpty();
+        assertThat(result.totalPrice()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(cart.getTotalPrice()).isEqualByComparingTo(BigDecimal.ZERO);
+    }
+
+    @Test
+    void shouldCheckoutAtomicallyAndDeductStock() {
+        Customer customer = customer();
+        ShoppingCart cart = pendingCart(customer);
+        Product product = product(1L, 5, "12.50");
+        CartItem item = new CartItem().id(30L).cart(cart).product(product).quantity(2).totalPrice(new BigDecimal("25.00"));
+
+        when(customerRepository.findOneByUserLogin("user")).thenReturn(Optional.of(customer));
+        when(shoppingCartRepository.findFirstByCustomerIdAndStatusOrderByPlacedDateDesc(10L, OrderStatus.PENDING)).thenReturn(
+            Optional.of(cart)
+        );
+        when(shoppingCartRepository.findByIdForUpdate(20L)).thenReturn(Optional.of(cart));
+        when(cartItemRepository.findAllByCartIdOrderById(20L)).thenReturn(List.of(item));
+        when(productRepository.findAllByIdForUpdate(List.of(1L))).thenReturn(List.of(product));
+
+        var result = service.checkout();
+
+        assertThat(result.status()).isEqualTo(OrderStatus.COMPLETED);
+        assertThat(result.totalPrice()).isEqualByComparingTo("25.00");
+        assertThat(product.getStock()).isEqualTo(3);
+        verify(productRepository).saveAll(any());
+        verify(shoppingCartRepository, times(1)).save(cart);
+    }
+
+    @Test
+    void shouldRejectCheckoutOfEmptyCart() {
+        Customer customer = customer();
+        ShoppingCart cart = pendingCart(customer);
+
+        when(customerRepository.findOneByUserLogin("user")).thenReturn(Optional.of(customer));
+        when(shoppingCartRepository.findFirstByCustomerIdAndStatusOrderByPlacedDateDesc(10L, OrderStatus.PENDING)).thenReturn(
+            Optional.of(cart)
+        );
+        when(shoppingCartRepository.findByIdForUpdate(20L)).thenReturn(Optional.of(cart));
+        when(cartItemRepository.findAllByCartIdOrderById(20L)).thenReturn(List.of());
+
+        assertThatThrownBy(service::checkout).isInstanceOf(EmptyCartException.class);
+        verify(productRepository, never()).saveAll(any());
+    }
+
+    @Test
+    void shouldNotDeductStockWhenAProductHasInsufficientStockAtCheckout() {
+        Customer customer = customer();
+        ShoppingCart cart = pendingCart(customer);
+        Product product = product(1L, 1, "12.50");
+        CartItem item = new CartItem().id(30L).cart(cart).product(product).quantity(2).totalPrice(new BigDecimal("25.00"));
+
+        when(customerRepository.findOneByUserLogin("user")).thenReturn(Optional.of(customer));
+        when(shoppingCartRepository.findFirstByCustomerIdAndStatusOrderByPlacedDateDesc(10L, OrderStatus.PENDING)).thenReturn(
+            Optional.of(cart)
+        );
+        when(shoppingCartRepository.findByIdForUpdate(20L)).thenReturn(Optional.of(cart));
+        when(cartItemRepository.findAllByCartIdOrderById(20L)).thenReturn(List.of(item));
+        when(productRepository.findAllByIdForUpdate(List.of(1L))).thenReturn(List.of(product));
+
+        assertThatThrownBy(service::checkout).isInstanceOf(StockConflictException.class);
+        assertThat(product.getStock()).isEqualTo(1);
+        verify(productRepository, never()).saveAll(any());
+    }
+
+    private Customer customer() {
+        return new Customer().id(10L).firstName("User").lastName("Test").email("user@localhost");
+    }
+
+    private ShoppingCart pendingCart(Customer customer) {
+        return new ShoppingCart()
+            .id(20L)
+            .customer(customer)
+            .placedDate(Instant.now())
+            .status(OrderStatus.PENDING)
+            .totalPrice(BigDecimal.ZERO);
+    }
+
+    private Product product(Long id, int stock, String price) {
+        return new Product().id(id).name("Producto").price(new BigDecimal(price)).stock(stock).active(true);
     }
 }

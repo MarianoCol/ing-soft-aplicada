@@ -13,6 +13,7 @@ import {
   IonToolbar,
 } from '@ionic/angular';
 import { CartService } from '../../core/cart.service';
+import { DisplayCartItem } from '../../core/models';
 
 @Component({
   selector: 'app-cart',
@@ -25,5 +26,13 @@ export class CartPage implements OnInit {
 
   ngOnInit(): void {
     void this.cart.initialize();
+  }
+
+  remove(item: DisplayCartItem): void {
+    void this.cart.remove(item);
+  }
+
+  checkout(): void {
+    void this.cart.checkout();
   }
 }

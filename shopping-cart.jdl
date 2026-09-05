@@ -24,6 +24,7 @@ entity Product {
   description String
   price BigDecimal required min(0)
   stock Integer required min(0)
+  active Boolean required
 }
 
 entity Customer {

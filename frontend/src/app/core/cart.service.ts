@@ -10,6 +10,7 @@ export class CartService {
   readonly cart = signal<CartView | null>(null);
   readonly pending = signal<PendingCartItem[]>([]);
   readonly message = signal<string | null>(null);
+  readonly checkingOut = signal(false);
 
   readonly items = computed<DisplayCartItem[]>(() => {
     const merged = new Map<number, DisplayCartItem>();
@@ -17,6 +18,10 @@ export class CartService {
       merged.set(item.productId, { ...item });
     }
     for (const item of this.pending()) {
+      if (item.quantity === 0) {
+        merged.delete(item.productId);
+        continue;
+      }
       merged.set(item.productId, {
         productId: item.productId,
         productName: item.productName,
@@ -74,6 +79,60 @@ export class CartService {
     if (navigator.onLine) await this.synchronizeItem(pending);
   }
 
+  async remove(item: DisplayCartItem): Promise<void> {
+    const username = this.auth.username();
+    if (!username) return;
+    const pending: PendingCartItem = {
+      id: `${username}:${item.productId}`,
+      username,
+      productId: item.productId,
+      productName: item.productName,
+      unitPrice: item.unitPrice,
+      stock: item.stock,
+      quantity: 0,
+      state: 'pending',
+    };
+    await this.store.put(pending);
+    await this.reloadPending();
+    this.message.set(navigator.onLine ? 'Eliminando producto…' : 'Eliminación guardada sin conexión');
+    if (navigator.onLine) await this.synchronizeItem(pending);
+  }
+
+  async checkout(): Promise<void> {
+    if (!navigator.onLine) {
+      this.message.set('Necesitás conexión para completar la compra');
+      return;
+    }
+    this.checkingOut.set(true);
+    try {
+      await this.synchronize();
+      if (this.pending().length > 0) {
+        this.message.set('Resolvé los productos pendientes antes de comprar');
+        return;
+      }
+      const order = await firstValueFrom(this.http.post<CartView>('/api/cart/checkout', {}));
+      this.cart.set(null);
+      await this.refreshServerCart();
+      this.message.set(`Compra #${order.id} realizada correctamente`);
+    } catch (error) {
+      const response = error as HttpErrorResponse;
+      this.message.set(
+        response.status === 409
+          ? 'No se pudo comprar: revisá el stock y los productos del carrito'
+          : 'No se pudo completar la compra',
+      );
+    } finally {
+      this.checkingOut.set(false);
+    }
+  }
+
+  reset(): void {
+    this.cart.set(null);
+    this.pending.set([]);
+    this.message.set(null);
+    this.initialized = false;
+  }
+
   async synchronize(): Promise<void> {
     if (!this.auth.isAuthenticated() || !navigator.onLine) return;
     for (const item of this.pending()) {
@@ -83,9 +142,11 @@ export class CartService {
 
   private async synchronizeItem(item: PendingCartItem): Promise<void> {
     try {
-      const cart = await firstValueFrom(
-        this.http.put<CartView>(`/api/cart/items/${item.productId}`, { quantity: item.quantity }),
-      );
+      const request =
+        item.quantity === 0
+          ? this.http.delete<CartView>(`/api/cart/items/${item.productId}`)
+          : this.http.put<CartView>(`/api/cart/items/${item.productId}`, { quantity: item.quantity });
+      const cart = await firstValueFrom(request);
       this.cart.set(cart);
       await this.store.delete(item.id);
       await this.reloadPending();
@@ -115,7 +176,7 @@ export class CartService {
 
   private errorMessage(error: HttpErrorResponse): string {
     if (error.status === 401) return 'Volvé a iniciar sesión para sincronizar';
-    if (error.status === 409) return 'La cantidad supera el stock disponible';
+    if (error.status === 409) return 'El producto no está disponible o la cantidad supera el stock';
     return 'Pendiente de sincronización';
   }
 }

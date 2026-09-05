@@ -51,7 +51,8 @@ public class ProductAsserts {
             .satisfies(a -> assertThat(a.getName()).as("check name").isEqualTo(expected.getName()))
             .satisfies(a -> assertThat(a.getDescription()).as("check description").isEqualTo(expected.getDescription()))
             .satisfies(a -> assertThat(a.getPrice()).as("check price").usingComparator(bigDecimalCompareTo).isEqualTo(expected.getPrice()))
-            .satisfies(a -> assertThat(a.getStock()).as("check stock").isEqualTo(expected.getStock()));
+            .satisfies(a -> assertThat(a.getStock()).as("check stock").isEqualTo(expected.getStock()))
+            .satisfies(a -> assertThat(a.getActive()).as("check active").isEqualTo(expected.getActive()));
     }
 
     /**

@@ -149,6 +149,19 @@ npm start
 
 Abre `http://localhost:8100` e ingresa con `user / user`. El Service Worker se activa solamente en compilaciones de producción; almacena el app shell y el catálogo. Las modificaciones offline se guardan por usuario en IndexedDB y se sincronizan al regresar la conexión. Un 401 conserva la cola hasta un nuevo login y un 409 marca el conflicto de stock.
 
+### Panel administrativo
+
+Ingresa con `admin / admin` para ser redirigido a `http://localhost:8100/admin` (o `http://localhost:8088/admin` con Docker). El panel, disponible sólo con `ROLE_ADMIN`, incluye:
+
+- resumen de productos, pedidos y usuarios;
+- alta, edición, activación y baja de productos;
+- consulta y finalización/cancelación de pedidos;
+- activación de usuarios y asignación del rol administrador.
+
+Los productos con historial se desactivan y permanecen en los pedidos existentes; sólo los productos nunca usados pueden borrarse definitivamente. Completar un pedido vuelve a validar y descuenta el stock en una transacción. Un pedido completado o cancelado ya no puede modificarse. El administrador conectado no puede desactivarse ni quitarse su propio rol.
+
+El panel requiere conexión. Sus endpoints `/api/admin/**` no se cachean, mientras que el catálogo público continúa disponible offline y sólo muestra productos activos.
+
 Para comprobar el modo offline usa el frontend Dockerizado en `http://localhost:8088`, carga el catálogo una vez y cambia DevTools → Network → Offline. Los Service Workers requieren HTTPS fuera de `localhost`.
 
 ## Fase 4: Cypress E2E
