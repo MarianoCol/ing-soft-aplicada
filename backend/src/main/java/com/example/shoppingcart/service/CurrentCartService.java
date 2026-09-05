@@ -16,7 +16,9 @@ import com.example.shoppingcart.service.dto.CartItemViewDTO;
 import com.example.shoppingcart.service.dto.CartViewDTO;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,6 +74,72 @@ public class CurrentCartService {
         item.setTotalPrice(product.getPrice().multiply(BigDecimal.valueOf(quantity)));
         cartItemRepository.save(item);
 
+        updateCartTotal(cart);
+        return toView(cart);
+    }
+
+    public CartViewDTO removeItem(Long productId) {
+        Customer customer = getOrCreateCurrentCustomer();
+        ShoppingCart cart = getOrCreatePendingCart(customer);
+        assertPending(cart);
+
+        cartItemRepository.findOneByCartIdAndProductId(cart.getId(), productId).ifPresent(cartItemRepository::delete);
+        updateCartTotal(cart);
+        return toView(cart);
+    }
+
+    public CartViewDTO checkout() {
+        Customer customer = getOrCreateCurrentCustomer();
+        ShoppingCart currentCart = getOrCreatePendingCart(customer);
+        ShoppingCart cart = shoppingCartRepository
+            .findByIdForUpdate(currentCart.getId())
+            .orElseThrow(() -> new CartNotEditableException(currentCart.getId()));
+        assertPending(cart);
+        if (!cart.getCustomer().getId().equals(customer.getId())) {
+            throw new AccessDeniedException("The shopping cart belongs to another customer");
+        }
+
+        List<CartItem> items = cartItemRepository.findAllByCartIdOrderById(cart.getId());
+        if (items.isEmpty()) {
+            throw new EmptyCartException();
+        }
+
+        List<Long> productIds = items.stream().map(item -> item.getProduct().getId()).distinct().sorted().toList();
+        Map<Long, Product> products = new HashMap<>();
+        productRepository.findAllByIdForUpdate(productIds).forEach(product -> products.put(product.getId(), product));
+
+        BigDecimal total = BigDecimal.ZERO;
+        for (CartItem item : items) {
+            Long productId = item.getProduct().getId();
+            Product product = products.get(productId);
+            if (product == null) {
+                throw new ProductNotFoundException(productId);
+            }
+            if (!Boolean.TRUE.equals(product.getActive())) {
+                throw new ProductUnavailableException(productId);
+            }
+            if (item.getQuantity() > product.getStock()) {
+                throw new StockConflictException(productId, item.getQuantity(), product.getStock());
+            }
+            product.setStock(product.getStock() - item.getQuantity());
+            total = total.add(item.getTotalPrice());
+        }
+
+        productRepository.saveAll(products.values());
+        cart.setTotalPrice(total);
+        cart.setPlacedDate(Instant.now());
+        cart.setStatus(OrderStatus.COMPLETED);
+        shoppingCartRepository.save(cart);
+        return toView(cart);
+    }
+
+    private void assertPending(ShoppingCart cart) {
+        if (cart.getStatus() != OrderStatus.PENDING) {
+            throw new CartNotEditableException(cart.getId());
+        }
+    }
+
+    private void updateCartTotal(ShoppingCart cart) {
         BigDecimal total = cartItemRepository
             .findAllByCartIdOrderById(cart.getId())
             .stream()
@@ -79,7 +147,6 @@ public class CurrentCartService {
             .reduce(BigDecimal.ZERO, BigDecimal::add);
         cart.setTotalPrice(total);
         shoppingCartRepository.save(cart);
-        return toView(cart);
     }
 
     private Customer getOrCreateCurrentCustomer() {
