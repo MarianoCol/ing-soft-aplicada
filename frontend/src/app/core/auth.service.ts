@@ -1,7 +1,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
-import { catchError, Observable, of, switchMap, tap } from 'rxjs';
-import { Account } from './models';
+import { catchError, map, Observable, of, switchMap, tap } from 'rxjs';
+import { Account, RegisterRequest } from './models';
 
 interface LoginResponse {
   id_token: string;
@@ -25,6 +25,17 @@ export class AuthService {
         tap(({ id_token }) => this.storeSession(username, id_token)),
         switchMap(() => this.loadAccount(true)),
       );
+  }
+
+  registerAndLogin(request: RegisterRequest): Observable<boolean> {
+    return this.http.post<void>('/api/register', request).pipe(
+      switchMap(() =>
+        this.login(request.login, request.password).pipe(
+          map(() => true),
+          catchError(() => of(false)),
+        ),
+      ),
+    );
   }
 
   storeSession(username: string, token: string): void {

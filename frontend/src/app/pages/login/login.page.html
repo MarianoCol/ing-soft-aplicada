@@ -7,7 +7,9 @@
 <ion-content class="ion-padding">
   <form class="login-card" (ngSubmit)="submit()">
     <h1>Iniciar sesión</h1>
-    <p>Usá <code>user / user</code> para el entorno local.</p>
+    @if (accountCreated) {
+      <p class="success">Tu cuenta fue creada. Iniciá sesión para continuar.</p>
+    }
     <ion-item>
       <ion-label position="stacked">Usuario</ion-label>
       <ion-input data-cy="username" name="username" [(ngModel)]="username" required></ion-input>
@@ -22,5 +24,6 @@
     <ion-button data-cy="login-submit" expand="block" type="submit" [disabled]="loading()">
       {{ loading() ? 'Ingresando…' : 'Ingresar' }}
     </ion-button>
+    <p class="auth-link">¿No tenés cuenta? <a routerLink="/register">Registrate</a></p>
   </form>
 </ion-content>
