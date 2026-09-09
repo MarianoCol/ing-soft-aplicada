@@ -3,6 +3,15 @@
     <ion-title>Productos</ion-title>
     @if (auth.isAuthenticated()) {
       @if (auth.isAdmin()) { <ion-button slot="end" fill="clear" color="light" routerLink="/admin" data-cy="open-admin">Administrar</ion-button> }
+      <ion-button
+        slot="end"
+        fill="clear"
+        color="light"
+        routerLink="/orders"
+        data-cy="open-orders"
+      >
+        Mis compras
+      </ion-button>
       <ion-button slot="end" fill="clear" color="light" routerLink="/cart" data-cy="open-cart">
         Carrito <ion-badge data-cy="cart-count">{{ cart.count() }}</ion-badge>
       </ion-button>

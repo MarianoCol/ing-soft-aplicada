@@ -21,6 +21,39 @@ public interface ShoppingCartRepository extends JpaRepository<ShoppingCart, Long
     long countByStatus(OrderStatus status);
 
     @Query(
+        value = """
+            select cart
+            from ShoppingCart cart
+            where cart.customer.user.login = :login
+            and cart.status <> :excludedStatus
+            """,
+        countQuery = """
+            select count(cart)
+            from ShoppingCart cart
+            where cart.customer.user.login = :login
+            and cart.status <> :excludedStatus
+            """
+    )
+    Page<ShoppingCart> findHistoryByLogin(
+        @Param("login") String login,
+        @Param("excludedStatus") OrderStatus excludedStatus,
+        Pageable pageable
+    );
+
+    @Query("""
+        select cart
+        from ShoppingCart cart
+        where cart.id = :id
+        and cart.customer.user.login = :login
+        and cart.status <> :excludedStatus
+        """)
+    Optional<ShoppingCart> findHistoryOrderByIdAndLogin(
+        @Param("id") Long id,
+        @Param("login") String login,
+        @Param("excludedStatus") OrderStatus excludedStatus
+    );
+
+    @Query(
         value = "select c from ShoppingCart c left join fetch c.customer where (:status is null or c.status = :status)",
         countQuery = "select count(c) from ShoppingCart c where (:status is null or c.status = :status)"
     )
