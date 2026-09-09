@@ -33,6 +33,26 @@ export interface AdminProduct extends Product {
 
 export type OrderStatus = 'PENDING' | 'COMPLETED' | 'CANCELLED';
 
+export interface OrderSummary {
+  id: number;
+  placedDate: string;
+  status: OrderStatus;
+  totalPrice: number;
+}
+
+export interface OrderItem {
+  id: number;
+  quantity: number;
+  totalPrice: number;
+  productId: number;
+  productName: string;
+  unitPrice: number;
+}
+
+export interface OrderDetail extends OrderSummary {
+  items: OrderItem[];
+}
+
 export interface AdminOrderSummary {
   id: number;
   placedDate: string;
