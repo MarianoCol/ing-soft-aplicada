@@ -1,0 +1,136 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Mis compras</ion-title>
+
+    <ion-button
+      slot="end"
+      fill="clear"
+      color="light"
+      routerLink="/products"
+    >
+      Productos
+    </ion-button>
+
+    <ion-button
+      slot="end"
+      fill="clear"
+      color="light"
+      routerLink="/cart"
+    >
+      Carrito
+    </ion-button>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="page-title">
+    <div>
+      <h1>Historial de compras</h1>
+      <p>Consultá tus pedidos anteriores y sus productos.</p>
+    </div>
+
+    <ion-button fill="outline" (click)="load()">
+      Actualizar
+    </ion-button>
+  </div>
+
+  @if (error()) {
+    <p class="error" role="alert">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <div class="loading">
+      <ion-spinner></ion-spinner>
+      <span>Cargando compras…</span>
+    </div>
+  } @else {
+    <ion-list data-cy="member-orders">
+      @for (order of orders(); track order.id) {
+        <ion-item
+          button
+          detail
+          (click)="open(order)"
+          [attr.data-cy]="'member-order-' + order.id"
+        >
+          <ion-label>
+            <h2>Compra #{{ order.id }}</h2>
+            <p>{{ order.placedDate | date: 'short' }}</p>
+          </ion-label>
+
+          <ion-badge [color]="statusColor(order.status)">
+            {{ statusLabel(order.status) }}
+          </ion-badge>
+
+          <strong slot="end">
+            {{ order.totalPrice | currency: 'USD' }}
+          </strong>
+        </ion-item>
+      } @empty {
+        <ion-item>
+          <ion-label>No tenés compras registradas todavía.</ion-label>
+        </ion-item>
+      }
+    </ion-list>
+
+    <div class="pagination">
+      <ion-button
+        fill="outline"
+        [disabled]="page === 0"
+        (click)="previous()"
+      >
+        Anterior
+      </ion-button>
+
+      <span>Página {{ page + 1 }}</span>
+
+      <ion-button
+        fill="outline"
+        [disabled]="(page + 1) * pageSize >= total()"
+        (click)="next()"
+      >
+        Siguiente
+      </ion-button>
+    </div>
+  }
+
+  @if (selected(); as order) {
+    <section class="order-detail" data-cy="member-order-detail">
+      <div class="detail-heading">
+        <div>
+          <h2>Compra #{{ order.id }}</h2>
+          <p>{{ order.placedDate | date: 'medium' }}</p>
+        </div>
+
+        <ion-badge [color]="statusColor(order.status)">
+          {{ statusLabel(order.status) }}
+        </ion-badge>
+      </div>
+
+      <ion-list>
+        @for (item of order.items; track item.id) {
+          <ion-item>
+            <ion-label>
+              <h3>{{ item.productName }}</h3>
+              <p>
+                {{ item.quantity }} ×
+                {{ item.unitPrice | currency: 'USD' }}
+              </p>
+            </ion-label>
+
+            <strong slot="end">
+              {{ item.totalPrice | currency: 'USD' }}
+            </strong>
+          </ion-item>
+        } @empty {
+          <ion-item>
+            <ion-label>Esta compra no contiene productos.</ion-label>
+          </ion-item>
+        }
+      </ion-list>
+
+      <h3 class="total">
+        Total: {{ order.totalPrice | currency: 'USD' }}
+      </h3>
+    </section>
+  }
+</ion-content>
