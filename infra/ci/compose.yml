@@ -1,0 +1,8 @@
+services:
+  backend:
+    logging:
+      driver: json-file
+
+  frontend:
+    logging:
+      driver: json-file

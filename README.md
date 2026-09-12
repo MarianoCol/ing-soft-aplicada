@@ -238,21 +238,34 @@ docker compose --profile observability down
 
 Para borrar también los volúmenes locales, ejecuta explícitamente `docker compose --profile observability down --volumes`.
 
-## Fase 6: Jenkins CI
+## Fase 6: CI con Jenkins y releases con GitHub Actions
 
-En Jenkins crea una credencial global de tipo **Username with password**:
+Para un repositorio privado configura la credencial Git/SSH en Jenkins. Crea un Pipeline desde SCM apuntando a este repositorio. El `Jenkinsfile` ejecuta checkout, pruebas backend, lint/tests/build frontend, construye ambas imágenes y ejecuta Cypress contra contenedores. Es el pipeline de integración continua para cambios normales y no publica imágenes.
 
-- ID: `dockerhub-creds`
-- Username: usuario/organización de Docker Hub.
-- Password: access token de Docker Hub, no la contraseña de la cuenta.
+### Configuración de Docker Hub
 
-Para un repositorio privado configura además la credencial Git/SSH en el job. Crea un Pipeline desde SCM apuntando a este repositorio. El `Jenkinsfile` ejecuta checkout, pruebas backend, lint/tests/build frontend, construye ambas imágenes, ejecuta Cypress contra contenedores y publica:
+1. Crea en Docker Hub los repositorios `shopping-cart-backend` y `shopping-cart-frontend` bajo tu usuario u organización.
+2. Genera un Personal Access Token con permisos de lectura y escritura. No uses la contraseña de la cuenta.
+3. En GitHub abre **Settings → Secrets and variables → Actions** y crea estos Repository secrets:
+
+   - `DOCKERHUB_USERNAME`: usuario utilizado para iniciar sesión en Docker Hub.
+   - `DOCKERHUB_TOKEN`: Personal Access Token de Docker Hub.
+
+4. Si los repositorios pertenecen a una organización, crea además la Repository variable `DOCKERHUB_NAMESPACE` con el nombre de la organización. Si se omite, se utiliza `DOCKERHUB_USERNAME` como namespace.
+
+El workflow `.github/workflows/release.yml` se activa sólo al publicar una GitHub Release. Acepta tags con versión semántica como `v1.2.0`, repite todas las verificaciones, ejecuta Cypress contra las imágenes construidas y, si todo finaliza correctamente, publica:
 
 ```text
-DOCKERHUB_USER/shopping-cart-backend:<BUILD_NUMBER>
+DOCKERHUB_USER/shopping-cart-backend:v1.2.0
 DOCKERHUB_USER/shopping-cart-backend:latest
-DOCKERHUB_USER/shopping-cart-frontend:<BUILD_NUMBER>
+DOCKERHUB_USER/shopping-cart-frontend:v1.2.0
 DOCKERHUB_USER/shopping-cart-frontend:latest
 ```
 
-El pipeline limpia únicamente el proyecto Compose efímero de ese build en el bloque `post`.
+Para liberar una versión, crea el tag y publica la release desde GitHub (**Releases → Draft a new release**) o con GitHub CLI:
+
+```bash
+gh release create v1.2.0 --generate-notes
+```
+
+Publicar el tag sin crear la GitHub Release no dispara el workflow. `latest` sólo se actualiza después de que pasan todas las verificaciones de una release estable; una prerelease publica únicamente su tag versionado. Tanto Jenkins como GitHub Actions eliminan su proyecto Compose efímero al finalizar.
