@@ -51,7 +51,7 @@ pipeline {
                 sh 'docker compose up --detach --no-build postgresql backend frontend'
                 sh '''
                     for attempt in $(seq 1 40); do
-                      if curl --fail --silent http://localhost:8080/health >/dev/null; then
+                      if curl --fail --silent http://localhost:8080/management/health >/dev/null; then
                         exit 0
                       fi
                       sleep 5
