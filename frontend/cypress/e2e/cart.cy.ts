@@ -22,7 +22,7 @@ describe('carrito de compras', () => {
   });
 
   it('inicia sesión por API y agrega el producto determinista desde la interfaz', () => {
-    cy.intercept('GET', '**/api/products*').as('getProducts');
+    cy.intercept('GET', '**/api/member/products*').as('getProducts');
     cy.intercept('GET', '**/api/cart').as('getCart');
     cy.intercept('PUT', '**/api/cart/items/1').as('setQuantity');
 
