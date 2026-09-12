@@ -51,7 +51,7 @@ pipeline {
                 sh 'docker compose up --detach --no-build postgresql backend frontend'
                 sh '''
                     for attempt in $(seq 1 40); do
-                      if curl --fail --silent http://localhost:8088/health >/dev/null; then
+                      if curl --fail --silent http://localhost:8080/health >/dev/null; then
                         exit 0
                       fi
                       sleep 5
@@ -71,33 +71,6 @@ pipeline {
             }
         }
 
-        stage('Push Docker Hub') {
-            steps {
-                withCredentials([
-                    usernamePassword(
-                        credentialsId: 'dockerhub-creds',
-                        usernameVariable: 'DOCKERHUB_USER',
-                        passwordVariable: 'DOCKERHUB_TOKEN'
-                    )
-                ]) {
-                    sh '''
-                        set +x
-                        printf '%s' "$DOCKERHUB_TOKEN" | docker login --username "$DOCKERHUB_USER" --password-stdin
-
-                        docker tag "ci/shopping-cart-backend:${BUILD_NUMBER}" "$DOCKERHUB_USER/shopping-cart-backend:${BUILD_NUMBER}"
-                        docker tag "ci/shopping-cart-backend:${BUILD_NUMBER}" "$DOCKERHUB_USER/shopping-cart-backend:latest"
-                        docker tag "ci/shopping-cart-frontend:${BUILD_NUMBER}" "$DOCKERHUB_USER/shopping-cart-frontend:${BUILD_NUMBER}"
-                        docker tag "ci/shopping-cart-frontend:${BUILD_NUMBER}" "$DOCKERHUB_USER/shopping-cart-frontend:latest"
-
-                        docker push "$DOCKERHUB_USER/shopping-cart-backend:${BUILD_NUMBER}"
-                        docker push "$DOCKERHUB_USER/shopping-cart-backend:latest"
-                        docker push "$DOCKERHUB_USER/shopping-cart-frontend:${BUILD_NUMBER}"
-                        docker push "$DOCKERHUB_USER/shopping-cart-frontend:latest"
-                        docker logout
-                    '''
-                }
-            }
-        }
     }
 
     post {

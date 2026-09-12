@@ -1,0 +1,136 @@
+name: Release images
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
+
+jobs:
+  verify-and-publish:
+    name: Verify and publish Docker images
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      COMPOSE_PROJECT_NAME: shopping-cart-release-${{ github.run_id }}
+      DOCKERHUB_USERNAME: ci
+      IMAGE_TAG: ${{ github.run_id }}
+      TESTCONTAINERS_HOST_OVERRIDE: 127.0.0.1
+
+    steps:
+      - name: Check out released revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Validate release tag
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "Release tag must use semantic versioning, for example v1.2.0" >&2
+            exit 1
+          fi
+
+      - name: Validate Docker Hub configuration
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+          DOCKERHUB_NAMESPACE: ${{ vars.DOCKERHUB_NAMESPACE || secrets.DOCKERHUB_USERNAME }}
+        run: |
+          if [[ -z "$DOCKERHUB_USERNAME" || -z "$DOCKERHUB_TOKEN" ]]; then
+            echo "DOCKERHUB_USERNAME and DOCKERHUB_TOKEN repository secrets are required" >&2
+            exit 1
+          fi
+          if [[ ! "$DOCKERHUB_NAMESPACE" =~ ^[a-z0-9][a-z0-9_-]*$ ]]; then
+            echo "Docker Hub namespace is invalid; configure the DOCKERHUB_NAMESPACE repository variable" >&2
+            exit 1
+          fi
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+
+      - name: Verify backend
+        working-directory: backend
+        run: ./mvnw -ntp verify
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Verify frontend
+        working-directory: frontend
+        run: |
+          npm run lint
+          npm run test -- --configuration=ci
+          npm run build
+
+      - name: Build release candidates
+        run: |
+          docker build --tag "ci/shopping-cart-backend:${IMAGE_TAG}" backend
+          docker build --tag "ci/shopping-cart-frontend:${IMAGE_TAG}" frontend
+
+      - name: Start release candidates
+        run: docker compose -f compose.yml -f infra/ci/compose.yml up --detach --no-build postgresql backend frontend
+
+      - name: Wait for application
+        run: |
+          for attempt in $(seq 1 40); do
+            if curl --fail --silent http://localhost:8088/health >/dev/null; then
+              exit 0
+            fi
+            sleep 5
+          done
+          docker compose -f compose.yml -f infra/ci/compose.yml ps
+          exit 1
+
+      - name: Run end-to-end tests
+        working-directory: frontend
+        run: npm run e2e -- --config baseUrl=http://localhost:8088 --env apiUrl=http://localhost:8080
+
+      - name: Log in to Docker Hub
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: printf '%s' "$DOCKERHUB_TOKEN" | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
+
+      - name: Publish versioned images
+        env:
+          DOCKERHUB_NAMESPACE: ${{ vars.DOCKERHUB_NAMESPACE || secrets.DOCKERHUB_USERNAME }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          docker tag "ci/shopping-cart-backend:${IMAGE_TAG}" "$DOCKERHUB_NAMESPACE/shopping-cart-backend:$RELEASE_TAG"
+          docker tag "ci/shopping-cart-frontend:${IMAGE_TAG}" "$DOCKERHUB_NAMESPACE/shopping-cart-frontend:$RELEASE_TAG"
+          docker push "$DOCKERHUB_NAMESPACE/shopping-cart-backend:$RELEASE_TAG"
+          docker push "$DOCKERHUB_NAMESPACE/shopping-cart-frontend:$RELEASE_TAG"
+
+      - name: Publish latest images
+        if: ${{ !github.event.release.prerelease }}
+        env:
+          DOCKERHUB_NAMESPACE: ${{ vars.DOCKERHUB_NAMESPACE || secrets.DOCKERHUB_USERNAME }}
+        run: |
+          docker tag "ci/shopping-cart-backend:${IMAGE_TAG}" "$DOCKERHUB_NAMESPACE/shopping-cart-backend:latest"
+          docker tag "ci/shopping-cart-frontend:${IMAGE_TAG}" "$DOCKERHUB_NAMESPACE/shopping-cart-frontend:latest"
+          docker push "$DOCKERHUB_NAMESPACE/shopping-cart-backend:latest"
+          docker push "$DOCKERHUB_NAMESPACE/shopping-cart-frontend:latest"
+
+      - name: Clean up
+        if: always()
+        run: docker compose -f compose.yml -f infra/ci/compose.yml down --volumes --remove-orphans
