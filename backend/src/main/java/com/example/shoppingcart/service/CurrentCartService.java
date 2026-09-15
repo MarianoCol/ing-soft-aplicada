@@ -19,6 +19,8 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +28,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional
 public class CurrentCartService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(CurrentCartService.class);
 
     private final UserRepository userRepository;
     private final CustomerRepository customerRepository;
@@ -56,9 +60,16 @@ public class CurrentCartService {
     public CartViewDTO setQuantity(Long productId, int quantity) {
         Product product = productRepository.findById(productId).orElseThrow(() -> new ProductNotFoundException(productId));
         if (!Boolean.TRUE.equals(product.getActive())) {
+            LOG.warn("Cart item rejected: productId={} reason=PRODUCT_INACTIVE", productId);
             throw new ProductUnavailableException(productId);
         }
         if (quantity > product.getStock()) {
+            LOG.warn(
+                "Cart item rejected: productId={} requestedQuantity={} availableStock={} reason=INSUFFICIENT_STOCK",
+                productId,
+                quantity,
+                product.getStock()
+            );
             throw new StockConflictException(productId, quantity, product.getStock());
         }
 
@@ -75,6 +86,13 @@ public class CurrentCartService {
         cartItemRepository.save(item);
 
         updateCartTotal(cart);
+        LOG.info(
+            "Cart item updated: cartId={} customerId={} productId={} quantity={}",
+            cart.getId(),
+            customer.getId(),
+            productId,
+            quantity
+        );
         return toView(cart);
     }
 
@@ -101,6 +119,7 @@ public class CurrentCartService {
 
         List<CartItem> items = cartItemRepository.findAllByCartIdOrderById(cart.getId());
         if (items.isEmpty()) {
+            LOG.warn("Checkout rejected: cartId={} customerId={} reason=EMPTY_CART", cart.getId(), customer.getId());
             throw new EmptyCartException();
         }
 
@@ -113,12 +132,32 @@ public class CurrentCartService {
             Long productId = item.getProduct().getId();
             Product product = products.get(productId);
             if (product == null) {
+                LOG.warn(
+                    "Checkout rejected: cartId={} customerId={} productId={} reason=PRODUCT_NOT_FOUND",
+                    cart.getId(),
+                    customer.getId(),
+                    productId
+                );
                 throw new ProductNotFoundException(productId);
             }
             if (!Boolean.TRUE.equals(product.getActive())) {
+                LOG.warn(
+                    "Checkout rejected: cartId={} customerId={} productId={} reason=PRODUCT_INACTIVE",
+                    cart.getId(),
+                    customer.getId(),
+                    productId
+                );
                 throw new ProductUnavailableException(productId);
             }
             if (item.getQuantity() > product.getStock()) {
+                LOG.warn(
+                    "Checkout rejected: cartId={} customerId={} productId={} requestedQuantity={} availableStock={} reason=INSUFFICIENT_STOCK",
+                    cart.getId(),
+                    customer.getId(),
+                    productId,
+                    item.getQuantity(),
+                    product.getStock()
+                );
                 throw new StockConflictException(productId, item.getQuantity(), product.getStock());
             }
             product.setStock(product.getStock() - item.getQuantity());
@@ -130,6 +169,7 @@ public class CurrentCartService {
         cart.setPlacedDate(Instant.now());
         cart.setStatus(OrderStatus.COMPLETED);
         shoppingCartRepository.save(cart);
+        LOG.info("Order completed: orderId={} customerId={} itemCount={} total={}", cart.getId(), customer.getId(), items.size(), total);
         return toView(cart);
     }
 
