@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { IonButton, IonButtons, IonHeader, IonRouterOutlet, IonTitle, IonToolbar } from '@ionic/angular';
-import { AuthService } from '../../core/auth.service';
+import { SessionService } from '../../core/session.service';
 
 @Component({
   selector: 'app-admin-layout',
@@ -11,8 +11,7 @@ import { AuthService } from '../../core/auth.service';
 })
 export class AdminLayoutComponent {
   readonly online = signal(navigator.onLine);
-  private readonly auth = inject(AuthService);
-  private readonly router = inject(Router);
+  private readonly session = inject(SessionService);
 
   constructor() {
     window.addEventListener('online', () => this.online.set(true));
@@ -20,7 +19,6 @@ export class AdminLayoutComponent {
   }
 
   logout(): void {
-    this.auth.logout();
-    void this.router.navigateByUrl('/products');
+    this.session.logout();
   }
 }

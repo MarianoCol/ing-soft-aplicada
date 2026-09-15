@@ -1,5 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import {
   IonBadge,
   IonButton,
@@ -9,24 +9,19 @@ import {
   IonCardSubtitle,
   IonCardTitle,
   IonContent,
-  IonHeader,
-  IonTitle,
-  IonToolbar,
 } from '@ionic/angular';
 import { CartService } from '../../core/cart.service';
 import { AuthService } from '../../core/auth.service';
 import { CatalogProduct, Product } from '../../core/models';
 import { ProductService } from '../../core/product.service';
+import { StoreHeaderComponent } from '../../shared/store-header.component';
 
 @Component({
   selector: 'app-products',
   templateUrl: './products.page.html',
   styleUrls: ['./products.page.scss'],
   imports: [
-    RouterLink,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
+    StoreHeaderComponent,
     IonContent,
     IonCard,
     IonCardHeader,
@@ -70,13 +65,6 @@ export class ProductsPage {
 
   hasPrice(product: CatalogProduct): product is Product {
     return 'price' in product && typeof product.price === 'number';
-  }
-
-  logout(): void {
-    this.auth.logout();
-    this.cart.reset();
-    this.products.set([]);
-    this.loadPublicProducts(false);
   }
 
   private loadProducts(): void {
