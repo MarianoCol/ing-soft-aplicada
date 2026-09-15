@@ -11,3 +11,42 @@
   min-height: 1.5rem;
   color: var(--ion-color-medium-shade);
 }
+
+.item-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.quantity-controls {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--ion-color-light-shade);
+  border-radius: 0.65rem;
+  background: var(--ion-color-light);
+}
+
+.quantity-controls ion-button {
+  --padding-start: 0.35rem;
+  --padding-end: 0.35rem;
+  margin: 0;
+}
+
+.quantity-controls ion-icon {
+  font-size: 1.1rem;
+}
+
+.quantity {
+  min-width: 1.5rem;
+  text-align: center;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 520px) {
+  .item-actions {
+    align-items: flex-end;
+    flex-direction: column-reverse;
+    gap: 0.35rem;
+  }
+}

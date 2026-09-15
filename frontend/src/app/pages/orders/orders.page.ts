@@ -1,20 +1,17 @@
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import {
   IonBadge,
   IonButton,
   IonContent,
-  IonHeader,
   IonItem,
   IonLabel,
   IonList,
   IonSpinner,
-  IonTitle,
-  IonToolbar,
 } from '@ionic/angular';
 import { OrderDetail, OrderStatus, OrderSummary } from '../../core/models';
 import { OrderService } from '../../core/order.service';
+import { StoreHeaderComponent } from '../../shared/store-header.component';
 
 @Component({
   selector: 'app-orders',
@@ -23,10 +20,7 @@ import { OrderService } from '../../core/order.service';
   imports: [
     CurrencyPipe,
     DatePipe,
-    RouterLink,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
+    StoreHeaderComponent,
     IonContent,
     IonButton,
     IonList,

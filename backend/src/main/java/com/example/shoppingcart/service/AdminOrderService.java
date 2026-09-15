@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional
 public class AdminOrderService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(AdminOrderService.class);
 
     private final ShoppingCartRepository shoppingCartRepository;
     private final CartItemRepository cartItemRepository;
@@ -52,19 +56,33 @@ public class AdminOrderService {
     public AdminOrderDetailDTO changeStatus(Long id, OrderStatus requestedStatus) {
         ShoppingCart cart = shoppingCartRepository.findByIdForUpdate(id).orElseThrow(() -> orderNotFound(id));
         if (cart.getStatus() != OrderStatus.PENDING || (requestedStatus != OrderStatus.COMPLETED && requestedStatus != OrderStatus.CANCELLED)) {
+            LOG.warn(
+                "Order status change rejected: orderId={} currentStatus={} requestedStatus={}",
+                id,
+                cart.getStatus(),
+                requestedStatus
+            );
             throw new InvalidOrderTransitionException(id);
         }
 
         List<CartItem> items = cartItemRepository.findAllByCartIdOrderById(id);
         if (requestedStatus == OrderStatus.COMPLETED) {
-            complete(items);
+            complete(id, items);
         }
         cart.setStatus(requestedStatus);
         shoppingCartRepository.save(cart);
+        LOG.info(
+            "Order status changed: orderId={} customerId={} status={} itemCount={} total={}",
+            id,
+            cart.getCustomer().getId(),
+            requestedStatus,
+            items.size(),
+            cart.getTotalPrice()
+        );
         return toDetail(cart, items);
     }
 
-    private void complete(List<CartItem> items) {
+    private void complete(Long orderId, List<CartItem> items) {
         if (items.isEmpty()) {
             return;
         }
@@ -76,9 +94,21 @@ public class AdminOrderService {
         for (CartItem item : items) {
             Product product = products.get(item.getProduct().getId());
             if (product == null || !Boolean.TRUE.equals(product.getActive())) {
+                LOG.warn(
+                    "Order completion rejected: orderId={} productId={} reason=PRODUCT_UNAVAILABLE",
+                    orderId,
+                    item.getProduct().getId()
+                );
                 throw new ProductUnavailableException(item.getProduct().getId());
             }
             if (item.getQuantity() > product.getStock()) {
+                LOG.warn(
+                    "Order completion rejected: orderId={} productId={} requestedQuantity={} availableStock={} reason=INSUFFICIENT_STOCK",
+                    orderId,
+                    product.getId(),
+                    item.getQuantity(),
+                    product.getStock()
+                );
                 throw new StockConflictException(product.getId(), item.getQuantity(), product.getStock());
             }
             product.setStock(product.getStock() - item.getQuantity());

@@ -242,6 +242,8 @@ Para borrar también los volúmenes locales, ejecuta explícitamente `docker com
 
 Para un repositorio privado configura la credencial Git/SSH en Jenkins. Crea un Pipeline desde SCM apuntando a este repositorio. El `Jenkinsfile` ejecuta checkout, pruebas backend, lint/tests/build frontend, construye ambas imágenes y ejecuta Cypress contra contenedores. Es el pipeline de integración continua para cambios normales y no publica imágenes.
 
+GitHub Actions ejecuta el mismo conjunto de validaciones en cada pull request dirigido a `master`, mediante `.github/workflows/ci.yml`. Las imágenes creadas allí son candidatas locales para E2E y nunca se publican. Configura en GitHub **Settings → Branches → Branch protection rules** una regla para `master` que exija el check **Verify application**, requiera pull requests y bloquee pushes directos; así el resultado aparece antes de habilitar el merge.
+
 ### Configuración de Docker Hub
 
 1. Crea en Docker Hub los repositorios `shopping-cart-backend` y `shopping-cart-frontend` bajo tu usuario u organización.
@@ -253,7 +255,7 @@ Para un repositorio privado configura la credencial Git/SSH en Jenkins. Crea un 
 
 4. Si los repositorios pertenecen a una organización, crea además la Repository variable `DOCKERHUB_NAMESPACE` con el nombre de la organización. Si se omite, se utiliza `DOCKERHUB_USERNAME` como namespace.
 
-El workflow `.github/workflows/release.yml` se activa sólo al publicar una GitHub Release. Acepta tags con versión semántica como `v1.2.0`, repite todas las verificaciones, ejecuta Cypress contra las imágenes construidas y, si todo finaliza correctamente, publica:
+El workflow `.github/workflows/release.yml` se activa sólo al publicar una GitHub Release. Acepta tags con versión semántica como `v1.2.0`, exige que el tag pertenezca a `master` y que su versión coincida con `frontend/package.json` y `backend/pom.xml`. Después construye y publica las imágenes, confiando en las validaciones ya exigidas para el merge:
 
 ```text
 DOCKERHUB_USER/shopping-cart-backend:v1.2.0
@@ -268,4 +270,4 @@ Para liberar una versión, crea el tag y publica la release desde GitHub (**Rele
 gh release create v1.2.0 --generate-notes
 ```
 
-Publicar el tag sin crear la GitHub Release no dispara el workflow. `latest` sólo se actualiza después de que pasan todas las verificaciones de una release estable; una prerelease publica únicamente su tag versionado. Tanto Jenkins como GitHub Actions eliminan su proyecto Compose efímero al finalizar.
+Publicar el tag sin crear la GitHub Release no dispara el workflow. `latest` sólo se actualiza para una release estable; una prerelease publica únicamente su tag versionado. Jenkins y el workflow de pull request eliminan su proyecto Compose efímero al finalizar.

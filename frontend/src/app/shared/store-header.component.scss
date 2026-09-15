@@ -1,0 +1,16 @@
+ion-toolbar { --padding-end: 0.35rem; }
+.store-nav { gap: 0.1rem; }
+.store-nav ion-button { --color: var(--ion-color-primary-contrast); --padding-start: 0.45rem; --padding-end: 0.45rem; min-width: 2.75rem; }
+.store-nav ion-icon { font-size: 1.25rem; }
+.store-nav ion-button.active { --background: rgb(255 255 255 / 18%); --border-radius: 0.5rem; }
+.cart-button { position: relative; margin-inline-end: 0.35rem; overflow: visible; }
+.cart-button::part(native) { overflow: visible; }
+.cart-count { --background: var(--ion-color-light); --color: var(--ion-color-primary); position: absolute; top: -0.35rem; right: -0.45rem; z-index: 1; min-width: 1.1rem; min-height: 1.1rem; padding: 0.1rem 0.28rem; border: 2px solid var(--ion-color-primary); border-radius: 999px; font-size: 0.67rem; font-weight: 700; line-height: 0.9rem; }
+.register-button { --background: rgb(255 255 255 / 16%); --border-radius: 0.5rem; }
+@media (max-width: 760px) {
+  ion-toolbar { --min-height: 3.75rem; }
+  ion-title { font-size: 1rem; }
+  .store-nav { gap: 0; }
+  .store-nav ion-button { --padding-start: 0.3rem; --padding-end: 0.3rem; min-width: 2.35rem; }
+  .nav-label { display: none; }
+}

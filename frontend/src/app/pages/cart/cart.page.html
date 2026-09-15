@@ -1,17 +1,4 @@
-<ion-header>
-  <ion-toolbar color="primary">
-    <ion-title>Tu carrito</ion-title>
-    <ion-button slot="end" fill="clear" color="light" routerLink="/products">Productos</ion-button>
-    <ion-button
-      slot="end"
-      fill="clear"
-      color="light"
-      routerLink="/orders"
-    >
-      Mis compras
-    </ion-button>
-  </ion-toolbar>
-</ion-header>
+<app-store-header title="Tu carrito"></app-store-header>
 
 <ion-content class="ion-padding">
   <ion-list data-cy="cart-items">
@@ -23,17 +10,31 @@
           @if (item.error) { <p class="error">{{ item.error }}</p> }
         </ion-label>
         @if (item.syncState) { <ion-badge color="warning">{{ item.syncState }}</ion-badge> }
-        <strong slot="end">{{ item.totalPrice | currency: 'USD' }}</strong>
-        <ion-button
-          slot="end"
-          fill="clear"
-          color="danger"
-          [attr.aria-label]="'Eliminar ' + item.productName"
-          [attr.data-cy]="'remove-item-' + item.productId"
-          (click)="remove(item)"
-        >
-          Eliminar
-        </ion-button>
+        <div slot="end" class="item-actions">
+          <div class="quantity-controls" [attr.aria-label]="'Cantidad de ' + item.productName">
+            <ion-button
+              fill="clear"
+              size="small"
+              [attr.aria-label]="item.quantity === 1 ? 'Eliminar ' + item.productName : 'Reducir cantidad de ' + item.productName"
+              [attr.data-cy]="'decrease-item-' + item.productId"
+              (click)="decrease(item)"
+            >
+              <ion-icon [icon]="icons.removeOutline" aria-hidden="true"></ion-icon>
+            </ion-button>
+            <span class="quantity" [attr.data-cy]="'cart-quantity-' + item.productId" aria-live="polite">{{ item.quantity }}</span>
+            <ion-button
+              fill="clear"
+              size="small"
+              [disabled]="item.quantity >= item.stock"
+              [attr.aria-label]="'Aumentar cantidad de ' + item.productName"
+              [attr.data-cy]="'increase-item-' + item.productId"
+              (click)="increase(item)"
+            >
+              <ion-icon [icon]="icons.addOutline" aria-hidden="true"></ion-icon>
+            </ion-button>
+          </div>
+          <strong>{{ item.totalPrice | currency: 'USD' }}</strong>
+        </div>
       </ion-item>
     } @empty {
       <p class="empty">El carrito está vacío.</p>

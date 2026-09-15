@@ -1,27 +1,4 @@
-<ion-header>
-  <ion-toolbar color="primary">
-    <ion-title>Productos</ion-title>
-    @if (auth.isAuthenticated()) {
-      @if (auth.isAdmin()) { <ion-button slot="end" fill="clear" color="light" routerLink="/admin" data-cy="open-admin">Administrar</ion-button> }
-      <ion-button
-        slot="end"
-        fill="clear"
-        color="light"
-        routerLink="/orders"
-        data-cy="open-orders"
-      >
-        Mis compras
-      </ion-button>
-      <ion-button slot="end" fill="clear" color="light" routerLink="/cart" data-cy="open-cart">
-        Carrito <ion-badge data-cy="cart-count">{{ cart.count() }}</ion-badge>
-      </ion-button>
-      <ion-button slot="end" fill="clear" color="light" (click)="logout()" data-cy="logout">Salir</ion-button>
-    } @else {
-      <ion-button slot="end" fill="clear" color="light" routerLink="/login" data-cy="open-login">Ingresar</ion-button>
-      <ion-button slot="end" fill="outline" color="light" routerLink="/register" data-cy="open-register">Registrarse</ion-button>
-    }
-  </ion-toolbar>
-</ion-header>
+<app-store-header title="Productos"></app-store-header>
 
 <ion-content class="ion-padding">
   <div class="status">

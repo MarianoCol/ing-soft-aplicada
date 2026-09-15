@@ -59,29 +59,28 @@ export class CartService {
   }
 
   async add(product: Product): Promise<void> {
-    const username = this.auth.username();
-    if (!username) return;
-    const current = this.items().find((item) => item.productId === product.id)?.quantity ?? 0;
-    const quantity = current + 1;
-    const pending: PendingCartItem = {
-      id: `${username}:${product.id}`,
-      username,
-      productId: product.id,
-      productName: product.name,
-      unitPrice: product.price,
-      stock: product.stock,
-      quantity,
-      state: 'pending',
-    };
-    await this.store.put(pending);
-    await this.reloadPending();
-    this.message.set(navigator.onLine ? 'Sincronizando carrito…' : 'Guardado sin conexión');
-    if (navigator.onLine) await this.synchronizeItem(pending);
+    const currentItem = this.items().find((item) => item.productId === product.id);
+    const current = currentItem?.quantity ?? 0;
+    if (current >= product.stock) {
+      this.message.set('No hay más unidades disponibles de este producto');
+      return;
+    }
+    await this.setQuantity(
+      currentItem ?? {
+        productId: product.id,
+        productName: product.name,
+        unitPrice: product.price,
+        stock: product.stock,
+        quantity: 0,
+        totalPrice: 0,
+      },
+      current + 1,
+    );
   }
 
-  async remove(item: DisplayCartItem): Promise<void> {
+  async setQuantity(item: DisplayCartItem, quantity: number): Promise<void> {
     const username = this.auth.username();
-    if (!username) return;
+    if (!username || !Number.isInteger(quantity) || quantity < 0) return;
     const pending: PendingCartItem = {
       id: `${username}:${item.productId}`,
       username,
@@ -89,13 +88,25 @@ export class CartService {
       productName: item.productName,
       unitPrice: item.unitPrice,
       stock: item.stock,
-      quantity: 0,
+      quantity,
       state: 'pending',
     };
     await this.store.put(pending);
     await this.reloadPending();
-    this.message.set(navigator.onLine ? 'Eliminando producto…' : 'Eliminación guardada sin conexión');
+    this.message.set(
+      navigator.onLine
+        ? quantity === 0
+          ? 'Eliminando producto…'
+          : 'Actualizando carrito…'
+        : quantity === 0
+          ? 'Eliminación guardada sin conexión'
+          : 'Cambio guardado sin conexión',
+    );
     if (navigator.onLine) await this.synchronizeItem(pending);
+  }
+
+  async remove(item: DisplayCartItem): Promise<void> {
+    await this.setQuantity(item, 0);
   }
 
   async checkout(): Promise<void> {
