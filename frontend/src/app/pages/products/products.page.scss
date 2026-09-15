@@ -13,4 +13,22 @@
 
 ion-card {
   margin: 0;
+  overflow: hidden;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+ion-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgb(15 23 42 / 13%);
+}
+
+ion-card-content p {
+  min-height: 2.8rem;
+  color: var(--ion-color-medium);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ion-card {
+    transition: none;
+  }
 }

@@ -35,3 +35,19 @@
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import '@ionic/angular/css/palettes/dark.system.css';
+
+ion-content {
+  --background: var(--ion-background-color);
+}
+
+ion-card {
+  border: 1px solid var(--ion-color-light-shade);
+  border-radius: 0.9rem;
+  box-shadow: 0 8px 24px rgb(15 23 42 / 8%);
+}
+
+ion-button::part(native):focus-visible,
+ion-item:focus-visible {
+  outline: 3px solid rgb(var(--ion-color-primary-rgb) / 45%);
+  outline-offset: 2px;
+}

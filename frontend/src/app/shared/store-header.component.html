@@ -1,0 +1,41 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>{{ title() }}</ion-title>
+
+    <ion-buttons slot="end" class="store-nav">
+      @if (auth.isAuthenticated()) {
+        @if (auth.isAdmin()) {
+          <ion-button routerLink="/admin" aria-label="Administrar" title="Administrar" data-cy="open-admin">
+            <ion-icon [icon]="icons.settingsOutline" aria-hidden="true"></ion-icon>
+            <span class="nav-label">Administrar</span>
+          </ion-button>
+        }
+        <ion-button routerLink="/products" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" aria-label="Productos" title="Productos">
+          <ion-icon [icon]="icons.storefrontOutline" aria-hidden="true"></ion-icon>
+          <span class="nav-label">Productos</span>
+        </ion-button>
+        <ion-button routerLink="/orders" routerLinkActive="active" aria-label="Mis compras" title="Mis compras" data-cy="open-orders">
+          <ion-icon [icon]="icons.receiptOutline" aria-hidden="true"></ion-icon>
+          <span class="nav-label">Mis compras</span>
+        </ion-button>
+        <ion-button class="cart-button" routerLink="/cart" routerLinkActive="active" aria-label="Abrir carrito" title="Carrito" data-cy="open-cart">
+          <ion-icon [icon]="icons.cartOutline" aria-hidden="true"></ion-icon>
+          <ion-badge class="cart-count" data-cy="cart-count">{{ cart.count() }}</ion-badge>
+        </ion-button>
+        <ion-button (click)="logout()" aria-label="Salir" title="Salir" data-cy="logout">
+          <ion-icon [icon]="icons.logOutOutline" aria-hidden="true"></ion-icon>
+          <span class="nav-label">Salir</span>
+        </ion-button>
+      } @else {
+        <ion-button routerLink="/login" aria-label="Ingresar" title="Ingresar" data-cy="open-login">
+          <ion-icon [icon]="icons.logInOutline" aria-hidden="true"></ion-icon>
+          <span class="nav-label">Ingresar</span>
+        </ion-button>
+        <ion-button routerLink="/register" class="register-button" aria-label="Registrarse" title="Registrarse" data-cy="open-register">
+          <ion-icon [icon]="icons.personAddOutline" aria-hidden="true"></ion-icon>
+          <span class="nav-label">Registrarse</span>
+        </ion-button>
+      }
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>

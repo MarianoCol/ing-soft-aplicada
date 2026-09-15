@@ -1,35 +1,46 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
 import {
   IonBadge,
   IonButton,
   IonContent,
-  IonHeader,
+  IonIcon,
   IonItem,
   IonLabel,
   IonList,
-  IonTitle,
-  IonToolbar,
 } from '@ionic/angular';
+import { addIcons } from 'ionicons';
+import { addOutline, removeOutline } from 'ionicons/icons';
 import { CartService } from '../../core/cart.service';
 import { DisplayCartItem } from '../../core/models';
+import { StoreHeaderComponent } from '../../shared/store-header.component';
 
 @Component({
   selector: 'app-cart',
   templateUrl: './cart.page.html',
   styleUrls: ['./cart.page.scss'],
-  imports: [CurrencyPipe, RouterLink, IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonItem, IonLabel, IonBadge, IonButton],
+  imports: [CurrencyPipe, StoreHeaderComponent, IonContent, IonList, IonItem, IonLabel, IonBadge, IonButton, IonIcon],
 })
 export class CartPage implements OnInit {
   readonly cart = inject(CartService);
+  readonly icons = { addOutline, removeOutline };
+
+  constructor() {
+    addIcons(this.icons);
+  }
 
   ngOnInit(): void {
     void this.cart.initialize();
   }
 
-  remove(item: DisplayCartItem): void {
-    void this.cart.remove(item);
+  decrease(item: DisplayCartItem): void {
+    void this.cart.setQuantity(item, item.quantity - 1);
+  }
+
+  increase(item: DisplayCartItem): void {
+    if (item.quantity < item.stock) {
+      void this.cart.setQuantity(item, item.quantity + 1);
+    }
   }
 
   checkout(): void {

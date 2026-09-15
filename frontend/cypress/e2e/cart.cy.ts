@@ -55,5 +55,13 @@ describe('carrito de compras', () => {
 
     cy.visit('/cart');
     cy.get('[data-cy="cart-item-1"]').should('contain.text', 'Producto E2E');
+    cy.get('[data-cy="cart-quantity-1"]').should('have.text', '2');
+    cy.get('[data-cy="logout"]').should('exist');
+
+    cy.intercept('PUT', '**/api/cart/items/1').as('decreaseQuantity');
+    cy.get('[data-cy="decrease-item-1"]').click();
+    cy.wait('@decreaseQuantity').its('response.statusCode').should('eq', 200);
+    cy.get('[data-cy="cart-quantity-1"]').should('have.text', '1');
+    cy.get('[data-cy="cart-count"]').should('have.text', '1');
   });
 });
