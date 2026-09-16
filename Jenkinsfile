@@ -48,7 +48,7 @@ pipeline {
 
         stage('E2E') {
             steps {
-                sh 'docker compose up --detach --no-build postgresql backend frontend'
+                sh 'docker compose -f compose.yml -f infra/ci/compose.yml up --detach --no-build postgresql backend frontend'
                 sh '''
                     for attempt in $(seq 1 40); do
                       if curl --fail --silent http://localhost:8080/management/health >/dev/null; then
@@ -56,7 +56,7 @@ pipeline {
                       fi
                       sleep 5
                     done
-                    docker compose ps
+                    docker compose -f compose.yml -f infra/ci/compose.yml ps
                     exit 1
                 '''
                 sh '''
@@ -75,7 +75,7 @@ pipeline {
 
     post {
         always {
-            sh 'docker compose down --volumes --remove-orphans || true'
+            sh 'docker compose -f compose.yml -f infra/ci/compose.yml down --volumes --remove-orphans || true'
         }
     }
 }
