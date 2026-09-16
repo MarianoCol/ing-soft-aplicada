@@ -45,7 +45,7 @@ services:
     logging:
       driver: gelf
       options:
-        gelf-address: udp://host.docker.internal:12201
+        gelf-address: udp://${GELF_HOST:-host.docker.internal}:12201
         tag: shopping-cart-backend
     networks: [application]
 
@@ -62,7 +62,7 @@ services:
     logging:
       driver: gelf
       options:
-        gelf-address: udp://host.docker.internal:12201
+        gelf-address: udp://${GELF_HOST:-host.docker.internal}:12201
         tag: shopping-cart-frontend
     networks: [application]
 
@@ -109,7 +109,7 @@ services:
       timeout: 5s
       retries: 30
       start_period: 30s
-    networks: [observability]
+    networks: [observability, application]
 
   kibana:
     image: docker.elastic.co/kibana/kibana:${ELASTIC_VERSION:-9.5.2}
